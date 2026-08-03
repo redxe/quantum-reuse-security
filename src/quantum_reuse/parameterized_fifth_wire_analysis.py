@@ -133,8 +133,7 @@ def bloch_vector(rho: np.ndarray) -> tuple[float, float, float]:
     pauli_y = np.array([[0, -1j], [1j, 0]], dtype=complex)
     pauli_z = np.array([[1, 0], [0, -1]], dtype=complex)
     return tuple(
-        float(np.real(np.trace(rho @ pauli)))
-        for pauli in (pauli_x, pauli_y, pauli_z)
+        float(np.real(np.trace(rho @ pauli))) for pauli in (pauli_x, pauli_y, pauli_z)
     )
 
 
@@ -147,6 +146,7 @@ def binary_entropy(p: float) -> float:
 @dataclass
 class NumericalValidation:
     """Track numerical stability metrics for quantum states and operators."""
+
     state_norm_error: float = 0.0
     density_matrix_trace_error: float = 0.0
     density_matrix_hermiticity_error: float = 0.0
@@ -155,33 +155,35 @@ class NumericalValidation:
     is_valid_state: bool = True
     is_valid_density_matrix: bool = True
     warnings: list[str] = None
-    
+
     def __post_init__(self):
         if self.warnings is None:
             self.warnings = []
 
 
-def validate_pure_state(state: np.ndarray, tolerance: float = 1e-10) -> NumericalValidation:
+def validate_pure_state(
+    state: np.ndarray, tolerance: float = 1e-10
+) -> NumericalValidation:
     """
     Validate that a state vector is properly normalized and check numerical stability.
-    
+
     Parameters:
         state: 1D complex array representing a quantum state
         tolerance: acceptable deviation from unit norm
-    
+
     Returns:
         NumericalValidation object with error metrics and warnings
     """
     val = NumericalValidation()
     norm_squared = float(np.vdot(state, state).real)
     val.state_norm_error = abs(norm_squared - 1.0)
-    
+
     if val.state_norm_error > tolerance:
         val.is_valid_state = False
         val.warnings.append(
             f"State norm deviation: {val.state_norm_error:.2e} (threshold: {tolerance:.2e})"
         )
-    
+
     return val
 
 
@@ -190,17 +192,17 @@ def validate_density_matrix(
 ) -> NumericalValidation:
     """
     Validate density matrix properties: trace=1, Hermitian, positive semi-definite.
-    
+
     Parameters:
         rho: 2D complex array representing a density matrix
         tolerance: acceptable deviation from trace=1 and Hermiticity
         atol: absolute tolerance for eigenvalue negativity check
-    
+
     Returns:
         NumericalValidation object with comprehensive error metrics
     """
     val = NumericalValidation()
-    
+
     # Trace check
     trace = float(np.trace(rho).real)
     val.density_matrix_trace_error = abs(trace - 1.0)
@@ -209,7 +211,7 @@ def validate_density_matrix(
         val.warnings.append(
             f"Trace deviation: {val.density_matrix_trace_error:.2e} (threshold: {tolerance:.2e})"
         )
-    
+
     # Hermiticity check
     hermitian_diff = np.linalg.norm(rho - rho.conj().T, ord="fro")
     val.density_matrix_hermiticity_error = float(hermitian_diff)
@@ -218,7 +220,7 @@ def validate_density_matrix(
         val.warnings.append(
             f"Hermiticity deviation: {val.density_matrix_hermiticity_error:.2e} (threshold: {tolerance:.2e})"
         )
-    
+
     # Eigenvalue check (positive semi-definite)
     eigenvalues = np.linalg.eigvalsh(rho)
     val.eigenvalue_negativity_min = float(eigenvalues.min())
@@ -227,7 +229,7 @@ def validate_density_matrix(
         val.warnings.append(
             f"Negative eigenvalue detected: {val.eigenvalue_negativity_min:.2e} (tolerance: {atol:.2e})"
         )
-    
+
     # Condition number (numerical stability indicator)
     # For pure/near-pure states, high condition numbers are expected and not problematic
     # Only warn if condition number is extremely high (> 1e14) AND there are detectable errors
@@ -235,26 +237,28 @@ def validate_density_matrix(
         val.condition_number = float(eigenvalues.max() / max(eigenvalues.min(), 1e-16))
     else:
         val.condition_number = np.inf
-    
+
     # Only warn about condition number if we're actually seeing errors that are
     # larger than what machine epsilon would allow
     eps = np.finfo(float).eps
     expected_error_floor = val.condition_number * eps
-    if val.condition_number > 1e14 and val.density_matrix_trace_error > expected_error_floor * 10:
+    if (
+        val.condition_number > 1e14
+        and val.density_matrix_trace_error > expected_error_floor * 10
+    ):
         val.warnings.append(
             f"High condition number with detectable error: {val.condition_number:.2e}"
         )
-    
+
     return val
 
 
 def validate_quantum_computation(
-    all_branches: list[BranchResult], 
-    tolerance: float = 1e-10
+    all_branches: list[BranchResult], tolerance: float = 1e-10
 ) -> dict:
     """
     Comprehensive validation of all computed density matrices and branch results.
-    
+
     Returns:
         Dictionary with summary statistics and per-branch details
     """
@@ -270,37 +274,43 @@ def validate_quantum_computation(
         "victim_validations": [],
         "all_warnings": [],
     }
-    
+
     for i, branch in enumerate(all_branches):
         # Validate fifth-wire density matrix
         fifth_val = validate_density_matrix(branch.fifth_rho, tolerance)
-        validation_report["fifth_wire_validations"].append({
-            "branch_index": i,
-            "trace_error": fifth_val.density_matrix_trace_error,
-            "hermiticity_error": fifth_val.density_matrix_hermiticity_error,
-            "eigenvalue_min": fifth_val.eigenvalue_negativity_min,
-            "condition_number": fifth_val.condition_number,
-            "is_valid": fifth_val.is_valid_density_matrix,
-            "warnings": fifth_val.warnings,
-        })
-        
+        validation_report["fifth_wire_validations"].append(
+            {
+                "branch_index": i,
+                "trace_error": fifth_val.density_matrix_trace_error,
+                "hermiticity_error": fifth_val.density_matrix_hermiticity_error,
+                "eigenvalue_min": fifth_val.eigenvalue_negativity_min,
+                "condition_number": fifth_val.condition_number,
+                "is_valid": fifth_val.is_valid_density_matrix,
+                "warnings": fifth_val.warnings,
+            }
+        )
+
         # Validate victim-subsystem density matrix
         victim_val = validate_density_matrix(branch.victim_rho, tolerance)
-        validation_report["victim_validations"].append({
-            "branch_index": i,
-            "trace_error": victim_val.density_matrix_trace_error,
-            "hermiticity_error": victim_val.density_matrix_hermiticity_error,
-            "eigenvalue_min": victim_val.eigenvalue_negativity_min,
-            "condition_number": victim_val.condition_number,
-            "is_valid": victim_val.is_valid_density_matrix,
-            "warnings": victim_val.warnings,
-        })
-        
+        validation_report["victim_validations"].append(
+            {
+                "branch_index": i,
+                "trace_error": victim_val.density_matrix_trace_error,
+                "hermiticity_error": victim_val.density_matrix_hermiticity_error,
+                "eigenvalue_min": victim_val.eigenvalue_negativity_min,
+                "condition_number": victim_val.condition_number,
+                "is_valid": victim_val.is_valid_density_matrix,
+                "warnings": victim_val.warnings,
+            }
+        )
+
         # Accumulate statistics
-        if not (fifth_val.is_valid_density_matrix and victim_val.is_valid_density_matrix):
+        if not (
+            fifth_val.is_valid_density_matrix and victim_val.is_valid_density_matrix
+        ):
             validation_report["branches_with_warnings"] += 1
             validation_report["all_valid"] = False
-        
+
         validation_report["max_trace_error"] = max(
             validation_report["max_trace_error"],
             fifth_val.density_matrix_trace_error,
@@ -321,10 +331,10 @@ def validate_quantum_computation(
             fifth_val.condition_number,
             victim_val.condition_number,
         )
-        
+
         validation_report["all_warnings"].extend(fifth_val.warnings)
         validation_report["all_warnings"].extend(victim_val.warnings)
-    
+
     return validation_report
 
 
@@ -385,7 +395,9 @@ class BranchResult:
     victim_trace_distance: float
 
 
-def enumerate_eve_branches(value: int, basis: int, eve_basis: int) -> list[BranchResult]:
+def enumerate_eve_branches(
+    value: int, basis: int, eve_basis: int
+) -> list[BranchResult]:
     n = 5
     state = prepare_advanced_state(value, basis)
 
@@ -469,32 +481,32 @@ def estimate_error_bounds(all_branches: list[BranchResult]) -> dict:
     """
     Estimate how results would change under small input perturbations.
     Useful for understanding sensitivity and stability of key claims.
-    
+
     Returns:
         Dictionary with error bound estimates
     """
     eps = np.finfo(float).eps
-    
+
     # Estimate spectral perturbation bounds
     all_eigenvalues = []
     all_traces = []
-    
+
     for branch in all_branches:
         eigs = np.linalg.eigvalsh(branch.fifth_rho)
         trace = float(np.trace(branch.fifth_rho).real)
         all_eigenvalues.extend(eigs)
         all_traces.append(trace)
-    
+
     all_eigenvalues = np.array(all_eigenvalues)
-    
+
     # Weyl's perturbation theorem: eigenvalue changes scale with operator norm
     # For density matrices, operator norm is at most 1
     spectral_perturbation_bound = 1.0 * eps
-    
+
     # Trace distance perturbation: scales with eigenvalue differences
     eigenvalue_spread = np.ptp(all_eigenvalues)  # peak-to-peak
     trace_distance_perturbation = eigenvalue_spread * eps
-    
+
     return {
         "machine_epsilon": float(eps),
         "spectral_perturbation_bound": float(spectral_perturbation_bound),
@@ -504,7 +516,7 @@ def estimate_error_bounds(all_branches: list[BranchResult]) -> dict:
     }
 
 
-def qiskit_parameterized_circuit():
+def qiskit_parameterized_skeleton():
     """
     Return a Qiskit Parameter-based circuit when Qiskit is available.
 
@@ -540,6 +552,11 @@ def qiskit_parameterized_circuit():
     qc.swap(2, 4)
 
     return qc, {"theta": theta, "phi": phi, "eve_angle": eve_angle}
+
+
+def qiskit_parameterized_circuit():
+    """Backward-compatible alias for qiskit_parameterized_skeleton()."""
+    return qiskit_parameterized_skeleton()
 
 
 def run_analysis(output_dir: Path) -> dict:
@@ -621,9 +638,13 @@ def run_analysis(output_dir: Path) -> dict:
                     "trace_distance": distance,
                     "optimal_single_shot_guess": 0.5 * (1 + distance),
                     "interpretation": (
-                        "perfect value leakage" if distance > 1 - 1e-9
-                        else "no value leakage" if distance < 1e-9
-                        else "partial value leakage"
+                        "perfect value leakage"
+                        if distance > 1 - 1e-9
+                        else (
+                            "no value leakage"
+                            if distance < 1e-9
+                            else "partial value leakage"
+                        )
                     ),
                 }
             )
@@ -641,9 +662,13 @@ def run_analysis(output_dir: Path) -> dict:
                     "trace_distance": distance,
                     "optimal_single_shot_guess": 0.5 * (1 + distance),
                     "interpretation": (
-                        "perfect basis leakage" if distance > 1 - 1e-9
-                        else "no basis leakage" if distance < 1e-9
-                        else "partial basis leakage, conditional on knowing v"
+                        "perfect basis leakage"
+                        if distance > 1 - 1e-9
+                        else (
+                            "no basis leakage"
+                            if distance < 1e-9
+                            else "partial basis leakage, conditional on knowing v"
+                        )
                     ),
                 }
             )
@@ -651,12 +676,10 @@ def run_analysis(output_dir: Path) -> dict:
     # Eve basis averaged out and not retained.
     for basis in (0, 1):
         rho_v0 = 0.5 * (
-            average_fifth_state(0, basis, 0)
-            + average_fifth_state(0, basis, 1)
+            average_fifth_state(0, basis, 0) + average_fifth_state(0, basis, 1)
         )
         rho_v1 = 0.5 * (
-            average_fifth_state(1, basis, 0)
-            + average_fifth_state(1, basis, 1)
+            average_fifth_state(1, basis, 0) + average_fifth_state(1, basis, 1)
         )
         distance = trace_distance(rho_v0, rho_v1)
         metric_rows.append(
@@ -671,12 +694,10 @@ def run_analysis(output_dir: Path) -> dict:
 
     for value in (0, 1):
         rho_b0 = 0.5 * (
-            average_fifth_state(value, 0, 0)
-            + average_fifth_state(value, 0, 1)
+            average_fifth_state(value, 0, 0) + average_fifth_state(value, 0, 1)
         )
         rho_b1 = 0.5 * (
-            average_fifth_state(value, 1, 0)
-            + average_fifth_state(value, 1, 1)
+            average_fifth_state(value, 1, 0) + average_fifth_state(value, 1, 1)
         )
         distance = trace_distance(rho_b0, rho_b1)
         metric_rows.append(
@@ -693,68 +714,81 @@ def run_analysis(output_dir: Path) -> dict:
     metrics_df.to_csv(output_dir / "distinguishability_metrics.csv", index=False)
 
     # Numerical validation and error analysis.
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("NUMERICAL VALIDATION REPORT")
-    print("="*70)
-    
+    print("=" * 70)
+
     validation_report = validate_quantum_computation(all_branches, tolerance=1e-10)
     error_bounds = estimate_error_bounds(all_branches)
-    
+
     print(f"Total branches analyzed: {validation_report['total_branches']}")
     print(f"Branches with warnings: {validation_report['branches_with_warnings']}")
     print(f"Computation fully valid: {validation_report['all_valid']}")
     print()
-    
+
     print("ERROR METRICS:")
     print(f"  Max trace error:          {validation_report['max_trace_error']:.2e}")
-    print(f"  Max Hermiticity error:    {validation_report['max_hermiticity_error']:.2e}")
-    print(f"  Min eigenvalue:           {validation_report['max_eigenvalue_negativity']:.2e}")
-    print(f"  Max condition number:     {validation_report['max_condition_number']:.2e}")
+    print(
+        f"  Max Hermiticity error:    {validation_report['max_hermiticity_error']:.2e}"
+    )
+    print(
+        f"  Min eigenvalue:           {validation_report['max_eigenvalue_negativity']:.2e}"
+    )
+    print(
+        f"  Max condition number:     {validation_report['max_condition_number']:.2e}"
+    )
     print()
-    
-    if validation_report['all_warnings']:
+
+    if validation_report["all_warnings"]:
         print("WARNINGS:")
-        for warning in validation_report['all_warnings'][:10]:  # Show first 10
+        for warning in validation_report["all_warnings"][:10]:  # Show first 10
             print(f"  - {warning}")
-        if len(validation_report['all_warnings']) > 10:
-            print(f"  ... and {len(validation_report['all_warnings']) - 10} more warnings")
+        if len(validation_report["all_warnings"]) > 10:
+            print(
+                f"  ... and {len(validation_report['all_warnings']) - 10} more warnings"
+            )
     else:
         print("No warnings detected.")
     print()
-    
+
     # Error bounds analysis
     print("ERROR BOUNDS ANALYSIS (Weyl Perturbation Theorem):")
     eps = np.finfo(float).eps
     print(f"  Machine epsilon (float64): {eps:.2e}")
     print(f"  Observed max trace error:  {validation_report['max_trace_error']:.2e}")
-    print(f"  Error/epsilon ratio:       {validation_report['max_trace_error']/eps:.2e}x")
-    
-    if validation_report['max_condition_number'] < np.inf:
-        stability_threshold = validation_report['max_condition_number'] * eps
+    print(
+        f"  Error/epsilon ratio:       {validation_report['max_trace_error']/eps:.2e}x"
+    )
+
+    if validation_report["max_condition_number"] < np.inf:
+        stability_threshold = validation_report["max_condition_number"] * eps
         print(f"  Stability threshold:       {stability_threshold:.2e}")
         print(f"  (errors above this may lose meaning)")
-    
+
     print()
     print("PERTURBATION BOUNDS (small input perturbations):")
-    print(f"  Spectral perturbation:    {error_bounds['spectral_perturbation_bound']:.2e}")
-    print(f"  Trace distance change:    {error_bounds['trace_distance_perturbation_bound']:.2e}")
+    print(
+        f"  Spectral perturbation:    {error_bounds['spectral_perturbation_bound']:.2e}"
+    )
+    print(
+        f"  Trace distance change:    {error_bounds['trace_distance_perturbation_bound']:.2e}"
+    )
     print(f"  Eigenvalue spread:        {error_bounds['eigenvalue_spread']:.2e}")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     # Information-theoretic summary.
     information = {
         "I_value_given_matching_basis_bits": 1.0,
         "I_value_given_mismatched_basis_bits": 0.0,
         "value_guess_probability_if_e_is_uniform_and_forgotten": 0.75,
-        "value_mutual_information_if_e_is_uniform_and_forgotten_bits":
-            1.0 - binary_entropy(0.25),
+        "value_mutual_information_if_e_is_uniform_and_forgotten_bits": 1.0
+        - binary_entropy(0.25),
         "value_mutual_information_if_e_is_retained_as_side_information_bits": 0.5,
         "basis_guess_probability_given_v_and_fixed_e": 0.75,
-        "basis_mutual_information_given_v_and_fixed_e_bits":
-            binary_entropy(0.25) - 0.5,
+        "basis_mutual_information_given_v_and_fixed_e_bits": binary_entropy(0.25) - 0.5,
         "joint_VB_holevo_upper_bound_for_fixed_e_bits": 0.5,
     }
-    
+
     # Add numerical validation data
     validation_summary = {
         "total_branches": validation_report["total_branches"],
@@ -768,11 +802,13 @@ def run_analysis(output_dir: Path) -> dict:
         "warning_count": len(validation_report["all_warnings"]),
         "error_bounds": {
             "spectral_perturbation_bound": error_bounds["spectral_perturbation_bound"],
-            "trace_distance_perturbation_bound": error_bounds["trace_distance_perturbation_bound"],
+            "trace_distance_perturbation_bound": error_bounds[
+                "trace_distance_perturbation_bound"
+            ],
             "eigenvalue_spread": error_bounds["eigenvalue_spread"],
-        }
+        },
     }
-    
+
     (output_dir / "information_summary.json").write_text(
         json.dumps(information, indent=2), encoding="utf-8"
     )
@@ -812,7 +848,10 @@ def run_analysis(output_dir: Path) -> dict:
     qiskit_status = "not installed; exact NumPy backend used"
     try:
         import qiskit  # type: ignore
-        qiskit_status = f"available ({qiskit.__version__}); NumPy exact backend used for report"
+
+        qiskit_status = (
+            f"available ({qiskit.__version__}); NumPy exact backend used for report"
+        )
     except Exception:
         pass
 

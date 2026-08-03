@@ -52,18 +52,41 @@ def swap_state_transfer_reference(psi: np.ndarray) -> np.ndarray:
     return state
 
 
-def coherent_teleportation_cleanup_state(psi: np.ndarray) -> np.ndarray:
+def coherent_teleportation_cleanup_quirk(psi: np.ndarray) -> np.ndarray:
     """
-    Coherent teleportation-derived cleanup map on |psi,0,0>.
+    Exact Quirk-sequence coherent cleanup map on |psi,0,0>.
 
     Sequence:
         1) Bell preparation on (A,B): H(A), CNOT(A->B)
         2) Bell-basis interaction on (S,A): CNOT(S->A), H(S)
-        3) Coherent corrections on B: CZ(S->B), CNOT(A->B)
-        4) Coherent uncomputation of syndrome qubits: H(A), CNOT(S->A), H(S)
+        3) Coherent corrections on B: CNOT(A->B), CZ(S->B)
+        4) Final cleanup Hadamards: H(S), H(A)
 
     Qubit order is (S,A,B) = (0,1,2). For inputs |psi,0,0>, the result is
     exactly |0,0,psi> up to floating-point precision.
+    """
+    n = 3
+    state = np.zeros(2**n, dtype=complex)
+    state[0] = psi[0]
+    state[4] = psi[1]
+
+    state = apply_single(state, H, 1, n)
+    state = _apply_cnot(state, 1, 2, n)
+    state = _apply_cnot(state, 0, 1, n)
+    state = apply_single(state, H, 0, n)
+    state = _apply_cnot(state, 1, 2, n)
+    state = _apply_cz(state, 0, 2, n)
+    state = apply_single(state, H, 0, n)
+    state = apply_single(state, H, 1, n)
+    return state
+
+
+def alternate_coherent_cleanup(psi: np.ndarray) -> np.ndarray:
+    """
+    Alternate coherent cleanup with coherent syndrome uncomputation.
+
+    This variant maps |psi,0,0> to |0,0,psi> on the tested subspace and is
+    retained for comparison against the exact Quirk-sequence implementation.
     """
     n = 3
     state = np.zeros(2**n, dtype=complex)
@@ -82,6 +105,11 @@ def coherent_teleportation_cleanup_state(psi: np.ndarray) -> np.ndarray:
     return state
 
 
+def coherent_teleportation_cleanup_state(psi: np.ndarray) -> np.ndarray:
+    """Backward-compatible alias for exact Quirk coherent cleanup."""
+    return coherent_teleportation_cleanup_quirk(psi)
+
+
 def coherent_cleanup_reference_state(psi: np.ndarray) -> np.ndarray:
     """Backward-compatible alias for the SWAP-only reference transfer."""
     return swap_state_transfer_reference(psi)
@@ -93,6 +121,8 @@ __all__ = [
     "X",
     "apply_single",
     "apply_swap",
+    "alternate_coherent_cleanup",
+    "coherent_teleportation_cleanup_quirk",
     "coherent_teleportation_cleanup_state",
     "coherent_cleanup_reference_state",
     "swap_state_transfer_reference",

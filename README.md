@@ -117,13 +117,20 @@ CI reruns the analysis and checks regenerated deterministic CSV artifacts agains
 
 Two three-qubit helpers are kept intentionally:
 
-- `coherent_teleportation_cleanup_state(...)`: Bell-prep + Bell-basis interaction +
-  coherent correction + cleanup uncomputation sequence.
+- `coherent_teleportation_cleanup_quirk(...)`: exact reconstructed Quirk-sequence
+  coherent cleanup implementation.
+- `alternate_coherent_cleanup(...)`: alternate coherent variant retained for
+  restricted-subspace comparison.
 - `swap_state_transfer_reference(...)`: direct SWAP-only transfer reference.
 
 Tests compare both on the restricted input subspace `|psi,0,0>` and verify they
 produce the same routed output there. This does not claim the full unitaries are
 globally identical outside that subspace.
+
+CI style gates currently cover the modular package surface (`circuits.py`,
+`analysis.py`, `state_preparation.py`, `measurements.py`, `metrics.py`,
+`validation.py`, tests, examples). The original monolithic core file remains
+temporarily exempt pending decomposition migration.
 
 ### Completed
 

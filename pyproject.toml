@@ -7,7 +7,7 @@ name = "quantum-reuse-security"
 version = "0.6.0"
 description = "Deterministic branch-conditioned analysis for quantum qubit reuse security"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [
   { name = "Vi Connelly" }
