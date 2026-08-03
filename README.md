@@ -175,6 +175,12 @@ This rule is intentionally labeled provisional until the original educational ci
 
 Use repository metadata in [CITATION.cff](CITATION.cff).
 
+### Release Citation
+
+Use the published release artifact for stable citation and review:
+
+- [v0.6.0 Release](https://github.com/redxe/quantum-reuse-security/releases/tag/v0.6.0)
+
 ### BibTeX
 
 ```bibtex
