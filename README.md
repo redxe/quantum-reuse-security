@@ -2,7 +2,9 @@
 
 Deterministic branch-conditioned analysis for quantum qubit reuse security.
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![CI](https://github.com/redxe/quantum-reuse-security/actions/workflows/ci.yml/badge.svg)](https://github.com/redxe/quantum-reuse-security/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/redxe/quantum-reuse-security?sort=semver)](https://github.com/redxe/quantum-reuse-security/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Overview
