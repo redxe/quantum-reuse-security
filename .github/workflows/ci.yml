@@ -44,15 +44,21 @@ jobs:
               left = pd.read_csv(f"ci_output/{generated}")
               right = pd.read_csv(expected)
 
-            if list(left.columns) != list(right.columns):
-              raise SystemExit(f"Column mismatch detected for {generated}")
+              if list(left.columns) != list(right.columns):
+                  raise SystemExit(f"Column mismatch detected for {generated}")
 
-            for col in left.columns:
-              if pd.api.types.is_numeric_dtype(left[col]):
-                if not np.allclose(left[col].to_numpy(), right[col].to_numpy(), rtol=0.0, atol=1e-12, equal_nan=True):
-                  raise SystemExit(f"Numeric mismatch detected for {generated}:{col}")
-              else:
-                if not left[col].astype(str).equals(right[col].astype(str)):
-                  raise SystemExit(f"Text mismatch detected for {generated}:{col}")
+              for col in left.columns:
+                  if pd.api.types.is_numeric_dtype(left[col]):
+                      if not np.allclose(
+                          left[col].to_numpy(),
+                          right[col].to_numpy(),
+                          rtol=0.0,
+                          atol=1e-12,
+                          equal_nan=True,
+                      ):
+                          raise SystemExit(f"Numeric mismatch detected for {generated}:{col}")
+                  else:
+                      if not left[col].astype(str).equals(right[col].astype(str)):
+                          raise SystemExit(f"Text mismatch detected for {generated}:{col}")
           print("Deterministic output comparison passed.")
           PY
