@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package and dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install -e ".[dev]"
+
+      - name: Run tests
+        run: pytest -q
+
+      - name: Run deterministic analysis
+        run: python -m quantum_reuse analyze --output ci_output
+
+      - name: Verify regenerated deterministic outputs
+        run: |
+          python - <<'PY'
+          import numpy as np
+          import pandas as pd
+
+          expected_files = {
+              "branch_conditioned_results.csv": "data/branch_conditioned_results.csv",
+              "averaged_fifth_wire_states.csv": "data/averaged_fifth_wire_states.csv",
+              "distinguishability_metrics.csv": "data/distinguishability_metrics.csv",
+          }
+
+          for generated, expected in expected_files.items():
+              left = pd.read_csv(f"ci_output/{generated}")
+              right = pd.read_csv(expected)
+
+            if list(left.columns) != list(right.columns):
+              raise SystemExit(f"Column mismatch detected for {generated}")
+
+            for col in left.columns:
+              if pd.api.types.is_numeric_dtype(left[col]):
+                if not np.allclose(left[col].to_numpy(), right[col].to_numpy(), rtol=0.0, atol=1e-12, equal_nan=True):
+                  raise SystemExit(f"Numeric mismatch detected for {generated}:{col}")
+              else:
+                if not left[col].astype(str).equals(right[col].astype(str)):
+                  raise SystemExit(f"Text mismatch detected for {generated}:{col}")
+          print("Deterministic output comparison passed.")
+          PY
