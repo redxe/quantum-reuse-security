@@ -1,13 +1,44 @@
-"""Circuit-level helpers and coherent cleanup reference construction."""
+"""Circuit-level helpers and coherent-cleanup constructions."""
 
 import numpy as np
 
-from .parameterized_fifth_wire_analysis import H, I2, X, apply_single, apply_swap, rz, ry
+from .parameterized_fifth_wire_analysis import (
+    H,
+    I2,
+    X,
+    apply_single,
+    apply_swap,
+    rz,
+    ry,
+)
 
 
-def coherent_cleanup_reference_state(psi: np.ndarray) -> np.ndarray:
+def _apply_cnot(state: np.ndarray, control: int, target: int, n: int) -> np.ndarray:
+    out = np.zeros_like(state)
+    for i, amp in enumerate(state):
+        bits = [((i >> (n - 1 - q)) & 1) for q in range(n)]
+        if bits[control] == 1:
+            bits[target] ^= 1
+        j = 0
+        for q, bit in enumerate(bits):
+            j |= bit << (n - 1 - q)
+        out[j] += amp
+    return out
+
+
+def _apply_cz(state: np.ndarray, control: int, target: int, n: int) -> np.ndarray:
+    out = state.copy()
+    for i in range(len(state)):
+        control_bit = (i >> (n - 1 - control)) & 1
+        target_bit = (i >> (n - 1 - target)) & 1
+        if control_bit == 1 and target_bit == 1:
+            out[i] *= -1
+    return out
+
+
+def swap_state_transfer_reference(psi: np.ndarray) -> np.ndarray:
     """
-    Reference coherent cleanup map on three qubits.
+    SWAP-only state-transfer reference on three qubits.
 
     It applies SWAP(0,1) then SWAP(1,2), mapping |psi,0,0> -> |0,0,psi|.
     This preserves coherence and entanglement with external references.
@@ -21,13 +52,50 @@ def coherent_cleanup_reference_state(psi: np.ndarray) -> np.ndarray:
     return state
 
 
+def coherent_teleportation_cleanup_state(psi: np.ndarray) -> np.ndarray:
+    """
+    Coherent teleportation-derived cleanup map on |psi,0,0>.
+
+    Sequence:
+        1) Bell preparation on (A,B): H(A), CNOT(A->B)
+        2) Bell-basis interaction on (S,A): CNOT(S->A), H(S)
+        3) Coherent corrections on B: CZ(S->B), CNOT(A->B)
+        4) Coherent uncomputation of syndrome qubits: H(A), CNOT(S->A), H(S)
+
+    Qubit order is (S,A,B) = (0,1,2). For inputs |psi,0,0>, the result is
+    exactly |0,0,psi> up to floating-point precision.
+    """
+    n = 3
+    state = np.zeros(2**n, dtype=complex)
+    state[0] = psi[0]
+    state[4] = psi[1]
+
+    state = apply_single(state, H, 1, n)
+    state = _apply_cnot(state, 1, 2, n)
+    state = _apply_cnot(state, 0, 1, n)
+    state = apply_single(state, H, 0, n)
+    state = _apply_cz(state, 0, 2, n)
+    state = _apply_cnot(state, 1, 2, n)
+    state = apply_single(state, H, 1, n)
+    state = _apply_cnot(state, 0, 1, n)
+    state = apply_single(state, H, 0, n)
+    return state
+
+
+def coherent_cleanup_reference_state(psi: np.ndarray) -> np.ndarray:
+    """Backward-compatible alias for the SWAP-only reference transfer."""
+    return swap_state_transfer_reference(psi)
+
+
 __all__ = [
     "H",
     "I2",
     "X",
     "apply_single",
     "apply_swap",
+    "coherent_teleportation_cleanup_state",
     "coherent_cleanup_reference_state",
+    "swap_state_transfer_reference",
     "rz",
     "ry",
 ]

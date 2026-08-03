@@ -3,6 +3,7 @@ import numpy as np
 from quantum_reuse.analysis import fixed_input_summary
 from quantum_reuse.measurements import enumerate_eve_branches
 from quantum_reuse.metrics import average_fifth_state, trace_distance
+from quantum_reuse.parameterized_fifth_wire_analysis import apply_swap
 
 
 def test_branch_probabilities_sum_to_one() -> None:
@@ -14,7 +15,27 @@ def test_branch_probabilities_sum_to_one() -> None:
                 assert abs(total - 1.0) < 1e-12
 
 
-def test_swap_semantic_mapping() -> None:
+def test_swap_network_permutation_q2_q3_q4() -> None:
+    # Local 3-qubit labels represent (q2, q3, q4).
+    # Network: SWAP(q3,q4) then SWAP(q2,q4) => (a,b,c) -> (b,c,a).
+    n = 3
+    for a in (0, 1):
+        for b in (0, 1):
+            for c in (0, 1):
+                index = (a << 2) | (b << 1) | c
+                state = np.zeros(2**n, dtype=complex)
+                state[index] = 1.0
+
+                routed = apply_swap(state, 1, 2, n)
+                routed = apply_swap(routed, 0, 2, n)
+
+                target_index = (b << 2) | (c << 1) | a
+                target = np.zeros(2**n, dtype=complex)
+                target[target_index] = 1.0
+                assert np.allclose(routed, target, atol=1e-12)
+
+
+def test_routing_places_eve_result_on_retained_wire() -> None:
     ket0 = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
     ket1 = np.array([[0.0, 0.0], [0.0, 1.0]], dtype=complex)
     for v in (0, 1):

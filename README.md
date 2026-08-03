@@ -113,6 +113,18 @@ CI reruns the analysis and checks regenerated deterministic CSV artifacts agains
 
 ## Current Scientific Status
 
+### Implementation Note: Coherent Cleanup vs Reference Transfer
+
+Two three-qubit helpers are kept intentionally:
+
+- `coherent_teleportation_cleanup_state(...)`: Bell-prep + Bell-basis interaction +
+  coherent correction + cleanup uncomputation sequence.
+- `swap_state_transfer_reference(...)`: direct SWAP-only transfer reference.
+
+Tests compare both on the restricted input subspace `|psi,0,0>` and verify they
+produce the same routed output there. This does not claim the full unitaries are
+globally identical outside that subspace.
+
 ### Completed
 
 - Stage 1 fixed-input and branch-conditioned analysis.

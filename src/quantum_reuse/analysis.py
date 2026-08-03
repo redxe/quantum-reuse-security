@@ -23,9 +23,13 @@ def fixed_input_summary() -> dict:
                 rho = average_fifth_state(v, b, e)
                 if e == b:
                     target = ket1 if v == 1 else ket0
-                    max_matching_error = max(max_matching_error, trace_distance(rho, target))
+                    max_matching_error = max(
+                        max_matching_error, trace_distance(rho, target)
+                    )
                 else:
-                    max_mismatch_error = max(max_mismatch_error, trace_distance(rho, maximally_mixed))
+                    max_mismatch_error = max(
+                        max_mismatch_error, trace_distance(rho, maximally_mixed)
+                    )
 
     return {
         "rho5_theorem": "rho_5^(v,b,e) = |v><v| if e=b, else I/2",
