@@ -46,7 +46,7 @@ Current tests verify restricted-subspace equivalence on |psi,0,0> inputs and do 
 At release preparation time:
 
 - Formatting and lint checks pass on CI-targeted modular surfaces.
-- Test suite passes locally.
+- Test suite passes in CI on Python 3.9, 3.11, and 3.13.
 - Deterministic outputs are compared against committed baselines in CI.
 
 ## Known Limitations

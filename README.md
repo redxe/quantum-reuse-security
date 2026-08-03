@@ -24,6 +24,10 @@ What is currently implemented and validated:
 
 ```text
 .
+├── .github/ISSUE_TEMPLATE/
+│   ├── detector-register-reconstruction.md
+│   ├── monolith-decomposition.md
+│   └── qiskit-parity.md
 ├── .github/workflows/ci.yml
 ├── CITATION.cff
 ├── CHANGELOG.md
@@ -41,6 +45,7 @@ What is currently implemented and validated:
 │   ├── INTERVIEW_GUIDE.md
 │   ├── PAPER.md
 │   ├── RESEARCH_AGENDA.md
+│   ├── RELEASE_NOTES_v0.6.0.md
 │   ├── TECHNICAL_REFERENCE.md
 │   ├── THREAT_MODEL.md
 │   └── VALIDATION_FRAMEWORK.md
