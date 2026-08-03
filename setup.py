@@ -33,7 +33,7 @@ setup(
     extras_require={
         "dev": [
             "pytest>=7.0",
-            "black>=23.0",
+            "black==24.8.0",
             "flake8>=6.0",
         ],
         "qiskit": [
