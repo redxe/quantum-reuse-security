@@ -89,7 +89,7 @@ git commit -m "Initial commit: Quantum compiler security research
 - Stages 2-4 planned: information metrics, compiler prototype, hardware validation"
 
 # Add remote and push
-git remote add origin https://github.com/yourusername/quantum-reuse-security.git
+git remote add origin https://github.com/redxe/quantum-reuse-security.git
 git branch -M main
 git push -u origin main
 ```
@@ -109,12 +109,12 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Connelly"
-    given-names: "Levi"
+    given-names: "Vi"
 type: software
 title: "Known-State Qubits as Both Resource and Risk"
 version: 0.5.0
 date-released: 2026-08-03
-url: "https://github.com/yourusername/quantum-reuse-security"
+url: "https://github.com/redxe/quantum-reuse-security"
 license: "MIT"
 ```
 

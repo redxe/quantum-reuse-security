@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it using this metadata."
+title: "Known-State Qubits as Both Resource and Risk"
+version: "0.6.0"
+type: software
+authors:
+  - family-names: "Connelly"
+    given-names: "Vi"
+repository-code: "https://github.com/redxe/quantum-reuse-security"
+url: "https://github.com/redxe/quantum-reuse-security"
+license: "MIT"
+abstract: >-
+  Deterministic branch-conditioned analysis for quantum qubit reuse security,
+  including fixed-input leakage characterization and numerical validation.
+keywords:
+  - quantum-computing
+  - quantum-security
+  - qubit-reuse
+  - bb84
+  - numerical-validation
