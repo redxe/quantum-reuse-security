@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quantum-reuse-security"
+version = "0.6.0"
+description = "Deterministic branch-conditioned analysis for quantum qubit reuse security"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+  { name = "Vi Connelly" }
+]
+dependencies = [
+  "numpy>=1.19.0",
+  "pandas>=1.1.0",
+  "matplotlib>=3.3.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0",
+  "black>=23.0",
+  "flake8>=6.0"
+]
+qiskit = [
+  "qiskit>=0.25.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/redxe/quantum-reuse-security"
+Repository = "https://github.com/redxe/quantum-reuse-security"
+
+[project.scripts]
+quantum-reuse = "quantum_reuse.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

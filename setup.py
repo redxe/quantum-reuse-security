@@ -5,14 +5,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="quantum-reuse-security",
-    version="0.5.0",
-    author="Levi Connelly",
-    author_email="ltconnelly314@gmail.com",
-    description="Analysis framework for qubit reuse security, hidden information leakage, and coherent cleanup",
+    version="0.6.0",
+    author="Vi Connelly",
+    description="Deterministic branch-conditioned analysis for quantum qubit reuse security",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/quantum-reuse-security",
-    packages=find_packages(),
+    url="https://github.com/redxe/quantum-reuse-security",
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
@@ -32,12 +32,17 @@ setup(
     ],
     extras_require={
         "dev": [
-            "pytest>=6.0",
-            "black>=21.0",
-            "flake8>=3.9",
+            "pytest>=7.0",
+            "black>=23.0",
+            "flake8>=6.0",
         ],
         "qiskit": [
             "qiskit>=0.25.0",
         ],
+    },
+    entry_points={
+        "console_scripts": [
+            "quantum-reuse=quantum_reuse.cli:main",
+        ]
     },
 )
