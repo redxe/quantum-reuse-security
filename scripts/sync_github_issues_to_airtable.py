@@ -67,8 +67,8 @@ def field_name(env_name: str, default: str) -> str:
     value = os.getenv(env_name)
     if value is None:
         return default
-    value = value.strip()
-    return value if value else default
+    # If the variable exists but is empty, treat it as explicitly disabled.
+    return value.strip()
 
 
 def airtable_table_url(base_id: str, table_name: str) -> str:
