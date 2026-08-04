@@ -10,7 +10,12 @@ import numpy as np
 import pandas as pd
 
 from .circuits import H, apply_single, apply_swap, ry, rz
-from .measurements import BranchResult, enumerate_eve_branches, measurement_branch
+from .measurements import (
+    BranchResult,
+    enumerate_eve_branches,
+    enumerate_eve_branches_parametric,
+    measurement_branch,
+)
 from .metrics import binary_entropy, bloch_vector, trace_distance
 from .state_preparation import bb84_angles, prepare_advanced_state
 from .validation import (
@@ -224,6 +229,58 @@ def fixed_input_summary() -> dict:
         "rho5_theorem": "rho_5^(v,b,e) = |v><v| if e=b, else I/2",
         "max_matching_trace_distance_error": float(max_matching_error),
         "max_mismatch_trace_distance_error": float(max_mismatch_error),
+    }
+
+
+def parametric_victim_analysis(theta: float, phi: float, eve_basis: int) -> dict:
+    """Victim-subsystem preservation for an arbitrary (theta, phi) signal state.
+
+    Prepares the five-wire circuit with ``q2 = q3 = Rz(phi) Ry(theta) |0>``
+    (i.e. an arbitrary Bloch-sphere input, not restricted to BB84 states),
+    branch-conditions on Eve's measurement, applies the routing SWAPs, and
+    returns victim fidelity and trace distance per Eve branch.
+
+    This verifies the claim in ``docs/THREAT_MODEL.md`` Section 7: Bob's
+    **read** privilege is preserved for all ``(theta, phi)`` inputs, not only
+    the four BB84 states.
+
+    Args:
+        theta: Ry rotation angle in radians.
+        phi: Rz rotation angle in radians.
+        eve_basis: Eve's measurement basis (0 = Z, 1 = X).
+
+    Returns:
+        Dict with keys ``theta``, ``phi``, ``eve_basis``, ``branches`` (list
+        of per-outcome dicts), ``min_victim_fidelity``, and
+        ``max_victim_trace_distance``.
+    """
+    branches = enumerate_eve_branches_parametric(theta, phi, eve_basis)
+    if not branches:
+        return {
+            "theta": theta,
+            "phi": phi,
+            "eve_basis": eve_basis,
+            "branches": [],
+            "min_victim_fidelity": float("nan"),
+            "max_victim_trace_distance": float("nan"),
+        }
+    return {
+        "theta": theta,
+        "phi": phi,
+        "eve_basis": eve_basis,
+        "branches": [
+            {
+                "eve_result": b.eve_result,
+                "branch_probability": b.branch_probability,
+                "victim_fidelity": b.victim_fidelity,
+                "victim_trace_distance": b.victim_trace_distance,
+            }
+            for b in branches
+        ],
+        "min_victim_fidelity": float(min(b.victim_fidelity for b in branches)),
+        "max_victim_trace_distance": float(
+            max(b.victim_trace_distance for b in branches)
+        ),
     }
 
 

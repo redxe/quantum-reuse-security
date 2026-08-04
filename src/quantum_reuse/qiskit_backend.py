@@ -201,8 +201,77 @@ def enumerate_eve_branches_qiskit(value: int, basis: int, eve_basis: int) -> lis
     return results
 
 
+def enumerate_eve_branches_qiskit_parametric(
+    theta: float, phi: float, eve_basis: int
+) -> list:
+    """Qiskit Statevector parity for arbitrary (theta, phi) signal preparation.
+
+    Mirrors :func:`enumerate_eve_branches_parametric` using Qiskit
+    Statevector simulation.  Returns a list of
+    :class:`~quantum_reuse.measurements.ParametricBranchResult` objects.
+
+    Args:
+        theta: Ry rotation angle in radians.
+        phi: Rz rotation angle in radians.
+        eve_basis: Eve's measurement basis (0=Z, 1=X).
+
+    Returns:
+        List of :class:`~quantum_reuse.measurements.ParametricBranchResult`.
+
+    Raises:
+        ImportError: if qiskit is not installed.
+    """
+    _require_qiskit()
+    from qiskit import QuantumCircuit
+    from qiskit.quantum_info import Statevector, partial_trace
+
+    from .metrics import fidelity_with_pure, trace_distance
+    from .measurements import ParametricBranchResult
+    from .state_preparation import expected_victim_state_parametric
+
+    qc = QuantumCircuit(5, name=f"spy_t{theta:.3f}_p{phi:.3f}_e{eve_basis}")
+    qc.ry(theta, _Q_EVE)
+    qc.rz(phi, _Q_EVE)
+    qc.ry(theta, _Q_BOB)
+    qc.rz(phi, _Q_BOB)
+    if eve_basis == 1:
+        qc.h(_Q_EVE)
+
+    pre_meas_sv = Statevector(qc).data
+
+    target = expected_victim_state_parametric(theta, phi)
+    target_rho = np.outer(target, target.conj())
+
+    routing_qc = QuantumCircuit(5, name="routing")
+    routing_qc.swap(_Q_BOB, _Q_FIFTH)
+    routing_qc.swap(_Q_EVE, _Q_FIFTH)
+
+    results: list[ParametricBranchResult] = []
+    for eve_result in (0, 1):
+        prob, branch_data = _project(pre_meas_sv, _Q_EVE, eve_result)
+        if prob < 1e-14:
+            continue
+        routed_sv = Statevector(branch_data).evolve(routing_qc)
+        victim_rho = partial_trace(routed_sv, [0]).data
+        results.append(
+            ParametricBranchResult(
+                theta=theta,
+                phi=phi,
+                eve_basis=eve_basis,
+                eve_result=eve_result,
+                branch_probability=prob,
+                victim_rho=victim_rho,
+                victim_fidelity=fidelity_with_pure(victim_rho, target),
+                victim_trace_distance=trace_distance(victim_rho, target_rho),
+            )
+        )
+
+    return results
+
+
 __all__ = [
     "build_protocol_circuit",
     "enumerate_eve_branches_qiskit",
+    "enumerate_eve_branches_qiskit_parametric",
     "qiskit_available",
 ]

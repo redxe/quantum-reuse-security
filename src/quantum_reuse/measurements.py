@@ -9,7 +9,12 @@ import numpy as np
 
 from .circuits import H, apply_single, apply_swap
 from .metrics import fidelity_with_pure, trace_distance
-from .state_preparation import expected_victim_state, prepare_advanced_state
+from .state_preparation import (
+    expected_victim_state,
+    expected_victim_state_parametric,
+    prepare_advanced_state,
+    prepare_parametric_state,
+)
 
 
 def measurement_branch(
@@ -38,6 +43,69 @@ def reduced_density_pure(state: np.ndarray, keep: Iterable[int], n: int) -> np.n
     tensor = np.transpose(tensor, keep + traced)
     matrix = tensor.reshape(2 ** len(keep), 2 ** len(traced))
     return matrix @ matrix.conj().T
+
+
+@dataclass
+class ParametricBranchResult:
+    """Branch result for an arbitrary (theta, phi) signal-wire input."""
+
+    theta: float
+    phi: float
+    eve_basis: int
+    eve_result: int
+    branch_probability: float
+    victim_rho: np.ndarray
+    victim_fidelity: float
+    victim_trace_distance: float
+
+
+def enumerate_eve_branches_parametric(
+    theta: float, phi: float, eve_basis: int
+) -> list[ParametricBranchResult]:
+    """Branch-conditioned analysis for an arbitrary (theta, phi) signal preparation.
+
+    Mirrors :func:`enumerate_eve_branches` but accepts arbitrary Bloch-sphere
+    rotation angles instead of fixed BB84 inputs.  The five-wire state is
+    prepared with ``q0 = q1 = |0>`` and ``q2 = q3 = Rz(phi) Ry(theta) |0>``.
+
+    Args:
+        theta: Ry rotation angle for the signal-wire preparation (radians).
+        phi: Rz rotation angle for the signal-wire preparation (radians).
+        eve_basis: Eve\'s measurement basis (0 = Z, 1 = X).
+
+    Returns:
+        List of :class:`ParametricBranchResult`, one per non-negligible Eve
+        measurement outcome.
+    """
+    n = 5
+    state = prepare_parametric_state(theta, phi)
+    if eve_basis == 1:
+        state = apply_single(state, H, 2, n)
+
+    target = expected_victim_state_parametric(theta, phi)
+    target_rho = np.outer(target, target.conj())
+
+    results: list[ParametricBranchResult] = []
+    for eve_result in (0, 1):
+        probability, branch = measurement_branch(state, 2, eve_result, n)
+        if probability < 1e-14:
+            continue
+        branch = apply_swap(branch, 3, 4, n)
+        branch = apply_swap(branch, 2, 4, n)
+        victim_rho = reduced_density_pure(branch, [0, 1, 2, 3], n)
+        results.append(
+            ParametricBranchResult(
+                theta=theta,
+                phi=phi,
+                eve_basis=eve_basis,
+                eve_result=eve_result,
+                branch_probability=probability,
+                victim_rho=victim_rho,
+                victim_fidelity=fidelity_with_pure(victim_rho, target),
+                victim_trace_distance=trace_distance(victim_rho, target_rho),
+            )
+        )
+    return results
 
 
 @dataclass

@@ -89,7 +89,7 @@ Every security claim in this repository is expressible in the following form.
 | Forbidden privilege | **Read**, **retain** (outside the intended computation) |
 | Observation channel | Gate parameters, wire assignments, measurement outcomes injected by the reuse pass |
 | Lifetime | Compilation phase and runtime execution |
-| Evidence | Source-access adversary model. The fifth-wire theorem bounds what any single injected ancilla can retain: retain($v$) iff $e = b$. A compiler injecting a single workspace qubit cannot silently retain a classically recoverable copy of $v$ across all $(e, b)$ combinations simultaneously. |
+| Evidence | Source-access adversary model. In the analyzed five-wire construction, the fifth wire retains $v$ iff $e = b$. This result characterizes the specific modeled circuit; it does not yet bound arbitrary single-ancilla compiler transformations. |
 
 ### 3.2 Eve's Signal Measurement (Branch-Conditioning Event)
 
@@ -184,14 +184,15 @@ the quantum channel; it holds **use** privilege over the circuit substrate. The
 operative question is whether **use** privilege can be converted to
 **read + retain** privilege through injected ancilla operations.
 
-The fifth-wire analysis answers this for the single-ancilla case: **use**
-converts to **retain** if and only if $e = b$, and the retained state is
-perfectly correlated with $v$ in that case. However, **retain** does not become
-**export** in the five-wire model, because the ancilla is never transmitted
-outside the computation. A realistic adversary would need to arrange **export**
-through a separate channel — compilation outputs, logs, calibration artifacts,
-or a covert classical side channel — none of which are modeled in the five-wire
-quantum circuit.
+The fifth-wire analysis answers this for the specific five-wire construction: in
+that model, **use** converts to **retain** iff $e = b$, and the retained state
+is perfectly correlated with $v$ in that case. This result does not yet bound
+arbitrary single-ancilla compiler transformations; an adversarial lower bound
+remains open. However, **retain** does not become **export** in the five-wire
+model, because the ancilla is never transmitted outside the computation. A
+realistic adversary would need to arrange **export** through a separate channel —
+compilation outputs, logs, calibration artifacts, or a covert classical side
+channel — none of which are modeled in the five-wire quantum circuit.
 
 ---
 
@@ -218,9 +219,11 @@ quantum circuit.
   $(\theta, \phi)$ preparation angles.
 - **Privilege at stake**: Bob's **read** privilege. The adversary's ancilla
   must not diminish Bob's ability to distinguish the intended input state.
-- **What is needed**: Parametric analysis over $(\theta, \phi) \in [0, 2\pi)^2$;
-  demonstration that victim **read** is preserved universally, not only at
-  BB84 points.
+- **Status**: ✅ **Verified** — `tests/test_parametric_victim.py` establishes
+  preservation across a 60-point angle grid and a 200-sample random sweep
+  over $(\theta, \phi) \in [0, \pi) \times [0, 2\pi)$ for both Eve bases.
+  Qiskit Statevector backend agrees at the same tolerance. Victim fidelity
+  $> 1 - 10^{-10}$ on all 200 × 2 branch sets.
 
 **For Issue #14 — malicious compiler model**
 
