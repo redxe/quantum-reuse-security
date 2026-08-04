@@ -13,7 +13,7 @@ and computes:
   * its Bloch vector;
   * value and basis distinguishability;
   * Bob's output probabilities;
-  * a provisional educational acceptance condition;
+    * reconstructed detector acceptance and branch-trace consistency checks;
   * victim-subsystem fidelity and trace distance against the clean baseline.
 
 Important circuit correction:
@@ -474,9 +474,8 @@ def detector_acceptance_probability(value: int, basis: int, bob_basis: int) -> f
     For fixed (v,b,c), this is P[accept] over Bob's measurement result r_B.
     """
     p0, p1 = bob_probabilities(value, basis, bob_basis)
-    return (
-        p0 * float(detector_accepts(value, basis, bob_basis, 0))
-        + p1 * float(detector_accepts(value, basis, bob_basis, 1))
+    return p0 * float(detector_accepts(value, basis, bob_basis, 0)) + p1 * float(
+        detector_accepts(value, basis, bob_basis, 1)
     )
 
 
@@ -499,6 +498,56 @@ def detector_acceptance_truth_table() -> list[dict[str, int]]:
                         }
                     )
     return rows
+
+
+def branch_trace_bob_result_probabilities(
+    value: int, basis: int, eve_basis: int, eve_result: int, bob_basis: int
+) -> tuple[float, float, float]:
+    """
+    Reconstruct Bob's q2 measurement distribution from explicit branch events.
+
+    Returns (p_branch, p_rB0_given_branch, p_rB1_given_branch), where p_branch
+    is Eve's branch probability for the selected r_E outcome.
+    """
+    n = 5
+    state = prepare_advanced_state(value, basis)
+
+    if eve_basis == 1:
+        state = apply_single(state, H, 2, n)
+
+    p_branch, branch_state = measurement_branch(state, 2, eve_result, n)
+    if p_branch < 1e-14:
+        return 0.0, 0.0, 0.0
+
+    # Same routing used in enumerate_eve_branches.
+    branch_state = apply_swap(branch_state, 3, 4, n)
+    branch_state = apply_swap(branch_state, 2, 4, n)
+
+    # Bob basis selector acts as H^c on q2 before measurement.
+    if bob_basis == 1:
+        branch_state = apply_single(branch_state, H, 2, n)
+
+    p_r0, _ = measurement_branch(branch_state, 2, 0, n)
+    p_r1, _ = measurement_branch(branch_state, 2, 1, n)
+    return p_branch, p_r0, p_r1
+
+
+def detector_acceptance_probability_from_branch_trace(
+    value: int, basis: int, eve_basis: int, bob_basis: int
+) -> float:
+    """
+    Compute detector acceptance using explicit branch-trace event composition.
+    """
+    total = 0.0
+    for eve_result in (0, 1):
+        p_branch, p_r0, p_r1 = branch_trace_bob_result_probabilities(
+            value, basis, eve_basis, eve_result, bob_basis
+        )
+        total += p_branch * (
+            p_r0 * float(detector_accepts(value, basis, bob_basis, 0))
+            + p_r1 * float(detector_accepts(value, basis, bob_basis, 1))
+        )
+    return float(total)
 
 
 def provisional_acceptance_probability(value: int, basis: int, bob_basis: int) -> float:
@@ -754,7 +803,42 @@ def run_analysis(output_dir: Path) -> dict:
 
     # Persist exact detector truth table used by acceptance calculations.
     detector_truth_table_df = pd.DataFrame(detector_acceptance_truth_table())
-    detector_truth_table_df.to_csv(output_dir / "detector_acceptance_truth_table.csv", index=False)
+    detector_truth_table_df.to_csv(
+        output_dir / "detector_acceptance_truth_table.csv", index=False
+    )
+
+    # Cross-check acceptance probability from formula vs branch-trace events.
+    detector_consistency_rows = []
+    for value in (0, 1):
+        for basis in (0, 1):
+            for eve_basis in (0, 1):
+                for bob_basis in (0, 1):
+                    formula_accept = detector_acceptance_probability(
+                        value, basis, bob_basis
+                    )
+                    trace_accept = detector_acceptance_probability_from_branch_trace(
+                        value, basis, eve_basis, bob_basis
+                    )
+                    abs_error = abs(formula_accept - trace_accept)
+                    detector_consistency_rows.append(
+                        {
+                            "v": value,
+                            "b": basis,
+                            "e": eve_basis,
+                            "c": bob_basis,
+                            "formula_acceptance": formula_accept,
+                            "trace_acceptance": trace_accept,
+                            "abs_error": abs_error,
+                        }
+                    )
+
+    detector_consistency_df = pd.DataFrame(detector_consistency_rows)
+    detector_consistency_df.to_csv(
+        output_dir / "detector_acceptance_consistency.csv", index=False
+    )
+    detector_consistency_max_abs_error = float(
+        detector_consistency_df["abs_error"].max()
+    )
 
     # Numerical validation and error analysis.
     print("\n" + "=" * 70)
@@ -973,6 +1057,7 @@ Across every fixed `(v,b,e,r_E)` branch:
 - minimum victim-subsystem fidelity: **{min_victim_fid:.12f}**
 - maximum victim-subsystem trace distance: **{max_victim_td:.3e}**
 - minimum matched-basis acceptance probability under exact detector rule: **{min_accept:.12f}**
+- formula-vs-trace acceptance max absolute error: **{detector_consistency_max_abs_error:.3e}**
 
 Under this fixed-branch abstraction, Bob receives the independently prepared
 duplicate exactly. Eve's measurement result is moved to `q4`, while the
@@ -1015,6 +1100,7 @@ For the reconstructed detector register, the exact acceptance event is:
 - `averaged_fifth_wire_states.csv`
 - `distinguishability_metrics.csv`
 - `detector_acceptance_truth_table.csv`
+- `detector_acceptance_consistency.csv`
 - `information_summary.json`
 - `numerical_validation.json` (numerical stability report)
 - `fifth_wire_bloch_z.png`
@@ -1027,6 +1113,7 @@ For the reconstructed detector register, the exact acceptance event is:
         "max_victim_trace_distance": max_victim_td,
         "min_victim_fidelity": min_victim_fid,
         "min_matched_basis_acceptance": min_accept,
+        "detector_consistency_max_abs_error": detector_consistency_max_abs_error,
         "numerical_validation": validation_summary,
         **information,
     }
