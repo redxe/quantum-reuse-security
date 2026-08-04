@@ -455,19 +455,55 @@ def bob_probabilities(value: int, basis: int, bob_basis: int) -> tuple[float, fl
     return float(probabilities[0]), float(probabilities[1])
 
 
-def provisional_acceptance_probability(value: int, basis: int, bob_basis: int) -> float:
+def detector_accepts(value: int, basis: int, bob_basis: int, bob_result: int) -> bool:
     """
-    Provisional educational detector:
-      * if Bob's basis does not match Alice's, discard/accept the trial;
-      * if bases match, accept only when Bob obtains Alice's encoded value.
+    Exact detector acceptance event for the reconstructed educational circuit:
 
-    This is clearly labeled provisional because the book circuit's exact
-    acceptance register has not yet been reconstructed.
+      accept = (c != b) OR (r_B == v)
+
+    where b is Alice's basis, c is Bob's basis, v is Alice's value, and r_B is
+    Bob's measured value on q2 after the controlled-H basis selection.
+    """
+    return (bob_basis != basis) or (bob_result == value)
+
+
+def detector_acceptance_probability(value: int, basis: int, bob_basis: int) -> float:
+    """
+    Acceptance probability induced by the exact detector acceptance event.
+
+    For fixed (v,b,c), this is P[accept] over Bob's measurement result r_B.
     """
     p0, p1 = bob_probabilities(value, basis, bob_basis)
-    if bob_basis != basis:
-        return 1.0
-    return (p0, p1)[value]
+    return (
+        p0 * float(detector_accepts(value, basis, bob_basis, 0))
+        + p1 * float(detector_accepts(value, basis, bob_basis, 1))
+    )
+
+
+def detector_acceptance_truth_table() -> list[dict[str, int]]:
+    """Return the full Boolean truth table for accept(v,b,c,r_B)."""
+    rows: list[dict[str, int]] = []
+    for value in (0, 1):
+        for basis in (0, 1):
+            for bob_basis in (0, 1):
+                for bob_result in (0, 1):
+                    rows.append(
+                        {
+                            "v": value,
+                            "b": basis,
+                            "c": bob_basis,
+                            "r_B": bob_result,
+                            "accept": int(
+                                detector_accepts(value, basis, bob_basis, bob_result)
+                            ),
+                        }
+                    )
+    return rows
+
+
+def provisional_acceptance_probability(value: int, basis: int, bob_basis: int) -> float:
+    """Backward-compatible alias for detector_acceptance_probability()."""
+    return detector_acceptance_probability(value, basis, bob_basis)
 
 
 def average_fifth_state(value: int, basis: int, eve_basis: int) -> np.ndarray:
@@ -589,6 +625,9 @@ def run_analysis(output_dir: Path) -> dict:
                                 "bob_basis_c": bob_basis,
                                 "bob_p0": p0,
                                 "bob_p1": p1,
+                                "detector_acceptance": detector_acceptance_probability(
+                                    value, basis, bob_basis
+                                ),
                                 "provisional_acceptance": provisional_acceptance_probability(
                                     value, basis, bob_basis
                                 ),
@@ -712,6 +751,10 @@ def run_analysis(output_dir: Path) -> dict:
 
     metrics_df = pd.DataFrame(metric_rows)
     metrics_df.to_csv(output_dir / "distinguishability_metrics.csv", index=False)
+
+    # Persist exact detector truth table used by acceptance calculations.
+    detector_truth_table_df = pd.DataFrame(detector_acceptance_truth_table())
+    detector_truth_table_df.to_csv(output_dir / "detector_acceptance_truth_table.csv", index=False)
 
     # Numerical validation and error analysis.
     print("\n" + "=" * 70)
@@ -859,7 +902,7 @@ def run_analysis(output_dir: Path) -> dict:
     min_victim_fid = float(branch_df["victim_fidelity"].min())
     min_accept = float(
         branch_df.loc[
-            branch_df["bob_basis_c"] == branch_df["b"], "provisional_acceptance"
+            branch_df["bob_basis_c"] == branch_df["b"], "detector_acceptance"
         ].min()
     )
 
@@ -929,7 +972,7 @@ Across every fixed `(v,b,e,r_E)` branch:
 
 - minimum victim-subsystem fidelity: **{min_victim_fid:.12f}**
 - maximum victim-subsystem trace distance: **{max_victim_td:.3e}**
-- minimum provisional matched-basis acceptance probability: **{min_accept:.12f}**
+- minimum matched-basis acceptance probability under exact detector rule: **{min_accept:.12f}**
 
 Under this fixed-branch abstraction, Bob receives the independently prepared
 duplicate exactly. Eve's measurement result is moved to `q4`, while the
@@ -960,9 +1003,9 @@ conditions within floating-point precision.
 ## Claim boundary
 
 This proves source-access leakage in the reconstructed abstract circuit. It does
-not prove that a channel-only adversary can obtain the same information, and it
-does not yet identify the book circuit's exact Boolean acceptance register.
-The acceptance metric used here is provisional:
+not prove that a channel-only adversary can obtain the same information.
+
+For the reconstructed detector register, the exact acceptance event is:
 
 `accept = (c != b) OR (Bob_result == v)`.
 
@@ -971,6 +1014,7 @@ The acceptance metric used here is provisional:
 - `branch_conditioned_results.csv`
 - `averaged_fifth_wire_states.csv`
 - `distinguishability_metrics.csv`
+- `detector_acceptance_truth_table.csv`
 - `information_summary.json`
 - `numerical_validation.json` (numerical stability report)
 - `fifth_wire_bloch_z.png`

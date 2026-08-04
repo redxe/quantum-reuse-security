@@ -148,19 +148,47 @@ temporarily exempt pending decomposition migration.
 
 ### Open / Explicitly Unresolved
 
-- Exact Boolean acceptance condition implemented by the full original educational detector register.
+- Whether the original educational detector includes additional post-processing
+  beyond the reconstructed gate-order acceptance event.
 - Hardware execution and noise-model validation.
 - Malicious compiler prototype implementation.
 
 ## Detector Condition Note
 
-The current script uses a provisional educational acceptance rule:
+For the reconstructed educational gate order, the analysis uses the exact
+acceptance event:
 
 $$
 \mathrm{accept} = (c \neq b) \lor (r_B = v)
 $$
 
-This rule is intentionally labeled provisional until the original educational circuit's exact detector register is fully reconstructed and matched.
+where $v$ is Alice's value bit, $b$ is Alice's basis bit, $c$ is Bob's basis
+bit, and $r_B$ is Bob's measured value bit.
+
+Formal truth table for $\mathrm{accept}(v,b,c,r_B)$:
+
+| v | b | c | r_B | accept |
+|---|---|---|-----|--------|
+| 0 | 0 | 0 | 0 | 1 |
+| 0 | 0 | 0 | 1 | 0 |
+| 0 | 0 | 1 | 0 | 1 |
+| 0 | 0 | 1 | 1 | 1 |
+| 0 | 1 | 0 | 0 | 1 |
+| 0 | 1 | 0 | 1 | 1 |
+| 0 | 1 | 1 | 0 | 1 |
+| 0 | 1 | 1 | 1 | 0 |
+| 1 | 0 | 0 | 0 | 0 |
+| 1 | 0 | 0 | 1 | 1 |
+| 1 | 0 | 1 | 0 | 1 |
+| 1 | 0 | 1 | 1 | 1 |
+| 1 | 1 | 0 | 0 | 1 |
+| 1 | 1 | 0 | 1 | 1 |
+| 1 | 1 | 1 | 0 | 0 |
+| 1 | 1 | 1 | 1 | 1 |
+
+The analysis output also includes the full Boolean truth table artifact:
+
+- `run_output/detector_acceptance_truth_table.csv`
 
 ## Documentation
 

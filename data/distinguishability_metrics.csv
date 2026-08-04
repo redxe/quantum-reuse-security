@@ -2,12 +2,12 @@ comparison,fixed,trace_distance,optimal_single_shot_guess,interpretation
 value_v,"b=0, e=0",1.0,1.0,perfect value leakage
 value_v,"b=0, e=1",0.0,0.5,no value leakage
 value_v,"b=1, e=0",0.0,0.5,no value leakage
-value_v,"b=1, e=1",0.9999999999999997,0.9999999999999998,perfect value leakage
-basis_b,"v=0, e=0",0.4999999999999999,0.75,"partial basis leakage, conditional on knowing v"
-basis_b,"v=0, e=1",0.49999999999999983,0.7499999999999999,"partial basis leakage, conditional on knowing v"
-basis_b,"v=1, e=0",0.5000000000000001,0.75,"partial basis leakage, conditional on knowing v"
-basis_b,"v=1, e=1",0.49999999999999983,0.7499999999999999,"partial basis leakage, conditional on knowing v"
+value_v,"b=1, e=1",1.0000000000000004,1.0000000000000002,perfect value leakage
+basis_b,"v=0, e=0",0.5,0.75,"partial basis leakage, conditional on knowing v"
+basis_b,"v=0, e=1",0.5000000000000002,0.7500000000000001,"partial basis leakage, conditional on knowing v"
+basis_b,"v=1, e=0",0.5,0.75,"partial basis leakage, conditional on knowing v"
+basis_b,"v=1, e=1",0.5000000000000002,0.7500000000000001,"partial basis leakage, conditional on knowing v"
 "value_v, Eve basis averaged",b=0,0.5,0.75,partial value leakage after forgetting e
-"value_v, Eve basis averaged",b=1,0.49999999999999983,0.7499999999999999,partial value leakage after forgetting e
-"basis_b, Eve basis averaged",v=0,5.551115123125783e-17,0.5,no basis leakage after forgetting e
+"value_v, Eve basis averaged",b=1,0.5000000000000002,0.7500000000000001,partial value leakage after forgetting e
+"basis_b, Eve basis averaged",v=0,1.6653345369377348e-16,0.5000000000000001,no basis leakage after forgetting e
 "basis_b, Eve basis averaged",v=1,1.6653345369377348e-16,0.5000000000000001,no basis leakage after forgetting e
