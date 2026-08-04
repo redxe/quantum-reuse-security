@@ -70,6 +70,62 @@ Issue #1 closure checks for detector semantics:
 
 ## Reproducibility Notes
 
-- Backend is exact linear algebra via NumPy.
+- Default backend is exact linear algebra via NumPy.
 - Outputs are deterministic for a fixed environment.
 - CI compares regenerated deterministic outputs against committed data baselines.
+
+## Backend Selection
+
+The analysis supports two simulation backends selected via the `backend`
+parameter of `run_analysis` (or the `--backend` CLI flag):
+
+| Backend | Module | Description |
+|---------|--------|-------------|
+| `numpy` (default) | `quantum_reuse.analysis` | Exact NumPy linear algebra; no optional dependencies |
+| `qiskit` | `quantum_reuse.qiskit_backend` | Qiskit `Statevector` exact simulation; requires `pip install 'quantum-reuse-security[qiskit]'` |
+
+Both backends:
+
+- Produce identical `BranchResult` objects and CSV artifacts within a parity
+  tolerance of $10^{-10}$.
+- Are deterministic: no random sampling, no shots, no noise model.
+- Use exact unitary evolution (`Statevector` in Qiskit; direct matrix
+  multiplication in NumPy).  This is **not** hardware execution and **not**
+  noisy-simulator validation.
+
+To run the full analysis with the Qiskit backend:
+
+```bash
+pip install 'quantum-reuse-security[qiskit]'
+python -m quantum_reuse analyze --backend qiskit --output run_output_qiskit
+```
+
+Cross-backend parity is enforced by the CI `qiskit-parity` job
+(`tests/test_qiskit_parity.py`), which installs Qiskit and verifies
+branch-level and aggregate CSV agreement for all eight `(value, basis,
+eve_basis)` input combinations.
+
+### Qubit Mapping (NumPy → Qiskit)
+
+Qiskit uses little-endian bit ordering (`q[0]` = LSB).  The implementation
+maps each NumPy qubit $k$ to Qiskit `q[n-1-k]` ($n=5$), which preserves
+statevector index parity so `Statevector(circuit).data` shares the same index
+convention as the NumPy state vectors:
+
+| NumPy qubit | Qiskit index | Role |
+|-------------|--------------|------|
+| q0 | q[4] | Alice value selector |
+| q1 | q[3] | Alice basis selector |
+| q2 | q[2] | Signal / Eve wire |
+| q3 | q[1] | Bob duplicate |
+| q4 | q[0] | Workspace / fifth wire |
+
+Routing SWAPs are applied via `Statevector.evolve()` with a two-SWAP
+`QuantumCircuit` after projecting the Eve measurement outcome.
+
+### Parity Tolerance
+
+The stated cross-backend tolerance is $10^{-10}$ (same as the internal
+numerical-validation tolerance in `validate_quantum_computation`).  Observed
+machine-precision agreement is typically $< 10^{-14}$ for branch probabilities
+and density-matrix elements.

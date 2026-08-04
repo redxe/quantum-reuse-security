@@ -14,6 +14,9 @@ This repository focuses on reproducible software evidence for a source-access th
 What is currently implemented and validated:
 
 - Exact branch-conditioned analysis with a NumPy reference backend.
+- Qiskit Statevector parity backend (`qiskit_backend.py`): exact simulation
+  that reproduces NumPy results within $10^{-10}$, verified by 43 parametric
+  CI tests across all eight `(value, basis, Eve basis)` input combinations.
 - Fixed-input fifth-wire theorem tested in code:
   - $\rho_5^{(v,b,e)} = |v\rangle\langle v|$ when $e=b$.
   - $\rho_5^{(v,b,e)} = I/2$ when $e\neq b$.
@@ -62,6 +65,7 @@ What is currently implemented and validated:
 │   ├── measurements.py
 │   ├── metrics.py
 │   ├── parameterized_fifth_wire_analysis.py
+│   ├── qiskit_backend.py
 │   ├── state_preparation.py
 │   └── validation.py
 └── tests/
@@ -88,6 +92,13 @@ python -m pip install -e .
 
 ```bash
 python -m quantum_reuse analyze --output run_output
+```
+
+To use the Qiskit Statevector backend instead (results are identical within $10^{-10}$):
+
+```bash
+pip install 'quantum-reuse-security[qiskit]'
+python -m quantum_reuse analyze --backend qiskit --output run_output_qiskit
 ```
 
 ### Print Fixed-Input Theorem Summary

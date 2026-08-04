@@ -21,6 +21,15 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("run_output"),
         help="Output directory for CSV, JSON, Markdown, and PNG artifacts.",
     )
+    analyze.add_argument(
+        "--backend",
+        choices=["numpy", "qiskit"],
+        default="numpy",
+        help=(
+            "Simulation backend: 'numpy' (default, exact NumPy linear algebra) "
+            "or 'qiskit' (Qiskit Statevector; requires the qiskit extra)."
+        ),
+    )
 
     subparsers.add_parser(
         "fixed-input-summary",
@@ -34,7 +43,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "analyze":
-        summary = run_analysis(args.output)
+        summary = run_analysis(args.output, backend=args.backend)
         print(json.dumps(summary, indent=2))
         return
 

@@ -227,8 +227,34 @@ def fixed_input_summary() -> dict:
     }
 
 
-def run_analysis(output_dir: Path) -> dict:
-    """Run the deterministic branch-conditioned analysis."""
+def run_analysis(output_dir: Path, backend: str = "numpy") -> dict:
+    """Run the deterministic branch-conditioned analysis.
+
+    Args:
+        output_dir: Directory to write CSV, JSON, PNG, and Markdown artifacts.
+        backend: Simulation backend.  ``'numpy'`` (default) uses exact NumPy
+            linear algebra.  ``'qiskit'`` uses Qiskit Statevector simulation
+            (requires ``pip install 'quantum-reuse-security[qiskit]'``).
+            Both backends produce identical results within 1e-10.
+
+    Returns:
+        Run summary dict (same structure regardless of backend).
+    """
+    if backend == "qiskit":
+        from .qiskit_backend import enumerate_eve_branches_qiskit as _branch_fn
+    elif backend == "numpy":
+        _branch_fn = enumerate_eve_branches
+    else:
+        raise ValueError(
+            f"Unknown backend {backend!r}. " "Choose 'numpy' (default) or 'qiskit'."
+        )
+
+    def _avg_fifth(value: int, basis: int, eve_basis: int) -> np.ndarray:
+        rho = np.zeros((2, 2), dtype=complex)
+        for _b in _branch_fn(value, basis, eve_basis):
+            rho += _b.branch_probability * _b.fifth_rho
+        return rho
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
     branch_rows = []
@@ -238,7 +264,7 @@ def run_analysis(output_dir: Path) -> dict:
     for value in (0, 1):
         for basis in (0, 1):
             for eve_basis in (0, 1):
-                branches = enumerate_eve_branches(value, basis, eve_basis)
+                branches = _branch_fn(value, basis, eve_basis)
                 all_branches.extend(branches)
 
                 averaged = np.zeros((2, 2), dtype=complex)
@@ -301,8 +327,8 @@ def run_analysis(output_dir: Path) -> dict:
 
     for basis in (0, 1):
         for eve_basis in (0, 1):
-            rho0 = average_fifth_state(0, basis, eve_basis)
-            rho1 = average_fifth_state(1, basis, eve_basis)
+            rho0 = _avg_fifth(0, basis, eve_basis)
+            rho1 = _avg_fifth(1, basis, eve_basis)
             distance = trace_distance(rho0, rho1)
             metric_rows.append(
                 {
@@ -324,8 +350,8 @@ def run_analysis(output_dir: Path) -> dict:
 
     for value in (0, 1):
         for eve_basis in (0, 1):
-            rho_b0 = average_fifth_state(value, 0, eve_basis)
-            rho_b1 = average_fifth_state(value, 1, eve_basis)
+            rho_b0 = _avg_fifth(value, 0, eve_basis)
+            rho_b1 = _avg_fifth(value, 1, eve_basis)
             distance = trace_distance(rho_b0, rho_b1)
             metric_rows.append(
                 {
@@ -346,12 +372,8 @@ def run_analysis(output_dir: Path) -> dict:
             )
 
     for basis in (0, 1):
-        rho_v0 = 0.5 * (
-            average_fifth_state(0, basis, 0) + average_fifth_state(0, basis, 1)
-        )
-        rho_v1 = 0.5 * (
-            average_fifth_state(1, basis, 0) + average_fifth_state(1, basis, 1)
-        )
+        rho_v0 = 0.5 * (_avg_fifth(0, basis, 0) + _avg_fifth(0, basis, 1))
+        rho_v1 = 0.5 * (_avg_fifth(1, basis, 0) + _avg_fifth(1, basis, 1))
         distance = trace_distance(rho_v0, rho_v1)
         metric_rows.append(
             {
@@ -364,12 +386,8 @@ def run_analysis(output_dir: Path) -> dict:
         )
 
     for value in (0, 1):
-        rho_b0 = 0.5 * (
-            average_fifth_state(value, 0, 0) + average_fifth_state(value, 0, 1)
-        )
-        rho_b1 = 0.5 * (
-            average_fifth_state(value, 1, 0) + average_fifth_state(value, 1, 1)
-        )
+        rho_b0 = 0.5 * (_avg_fifth(value, 0, 0) + _avg_fifth(value, 0, 1))
+        rho_b1 = 0.5 * (_avg_fifth(value, 1, 0) + _avg_fifth(value, 1, 1))
         distance = trace_distance(rho_b0, rho_b1)
         metric_rows.append(
             {
@@ -551,15 +569,18 @@ def run_analysis(output_dir: Path) -> dict:
     fig.savefig(output_dir / "trace_distance_summary.png", dpi=180)
     plt.close(fig)
 
-    qiskit_status = "not installed; exact NumPy backend used"
-    try:
-        import qiskit  # type: ignore
+    if backend == "qiskit":
+        try:
+            import qiskit  # type: ignore
 
-        qiskit_status = (
-            f"available ({qiskit.__version__}); NumPy exact backend used for report"
-        )
-    except Exception:
-        pass
+            qiskit_status = (
+                f"Qiskit Statevector ({qiskit.__version__}); "
+                "exact simulation, deterministic"
+            )
+        except Exception:
+            qiskit_status = "qiskit (unknown version); exact simulation"
+    else:
+        qiskit_status = "NumPy exact linear algebra backend"
 
     max_victim_td = float(branch_df["victim_trace_distance"].max())
     min_victim_fid = float(branch_df["victim_fidelity"].min())
