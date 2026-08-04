@@ -114,15 +114,16 @@ def validate_density_matrix(
     if val.eigenvalue_negativity_min < -atol:
         val.is_valid_density_matrix = False
         negativity = val.eigenvalue_negativity_min
-        val.warnings.append(
-            "Negative eigenvalue detected: "
-            f"{negativity:.2e} "
-            f"(tolerance: {atol:.2e})"
+        tolerance_text = f"(tolerance: {atol:.2e})"
+        message = (
+            "Negative eigenvalue detected: " f"{negativity:.2e} " f"{tolerance_text}"
         )
+        val.warnings.append(message)
 
     # Condition number (numerical stability indicator)
     # For pure/near-pure states, high condition numbers are expected and not problematic
-    # Only warn if condition number is extremely high (> 1e14) AND there are detectable errors
+    # Only warn if condition number is extremely high (> 1e14)
+    # and there are detectable errors.
     if eigenvalues.max() > 0:
         val.condition_number = float(eigenvalues.max() / max(eigenvalues.min(), 1e-16))
     else:
