@@ -118,7 +118,8 @@ def airtable_list_records(
             params.append(("offset", offset))
         if fields:
             for field in fields:
-                params.append(("fields[]", field))
+                if field:
+                    params.append(("fields[]", field))
 
         url = f"{airtable_table_url(base_id, table_name)}?{urlencode(params)}"
         data = http_json("GET", url, headers)
