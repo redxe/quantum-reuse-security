@@ -13,8 +13,13 @@
   provisional.
   \item It does not demonstrate malware on production quantum hardware, and the
   validated reference backend is an ideal NumPy model rather than a device run.
-  \item It does not yet provide full branch-level Qiskit parity or a malicious
-  compiler prototype.
+  \item It does not yet provide complete branch-level Qiskit parity across all
+  configurations (Issue 13); parametric parity across 44 test cases is
+  established by the current artifact.
+  \item It does not prove victim-channel preservation as a formal channel
+  theorem. The parametric sweep is strong numerical evidence but does not
+  cover states entangled with an external reference; a Choi-state test would
+  be needed for complete channel equality.
   \item It does not show that encrypted data can always be decrypted or usefully
   exploited after copying.
   \item Agreement between the coherent cleanup implementation and the SWAP

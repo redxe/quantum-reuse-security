@@ -29,11 +29,13 @@ The result motivates a broader threat model: an untrusted compiler, runtime,
 source, or control stack may use reclaimed qubits as hidden workspace while
 preserving only the outputs a user verifies. We prove the corresponding
 information-disturbance boundary, distinguish four levels of circuit
-equivalence, and introduce a hyperlinked 5-by-6 security capability matrix that
-separates feasible, conditional, hypothetical, blocked, and unnecessary attack
-objectives across five adversary-access tiers. A linked appendix records what is
-touched, what may remain untouched, available alternatives, mitigations, and
-evidence for every cell. We also release a versioned research artifact with
-automated tests and deterministic regression checks. The exact Boolean acceptance register of the
-original educational detector, full Qiskit parity, and hardware validation
-remain explicit open problems.
+equivalence, introduce a use/read/retain/export privilege vocabulary, and
+present a hyperlinked 5-by-6 security capability matrix that separates
+feasible, conditional, hypothetical, blocked, and unnecessary attack
+objectives across five adversary-access tiers. A parametric sweep then extends
+the victim-channel preservation result beyond the four BB84 inputs to arbitrary
+pure-state preparations, confirmed independently by a Qiskit Statevector backend.
+We also release a versioned research artifact with automated tests and
+deterministic regression checks. The exact Boolean acceptance register of the
+original educational detector, complete branch-level Qiskit parity, and hardware
+validation remain explicit open problems.

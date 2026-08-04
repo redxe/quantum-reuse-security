@@ -5,13 +5,20 @@ Revision 0.7 completes the first planned evidence stage, adds a structured
 security capability matrix, and converts the nearest remaining work into a
 public roadmap.
 
-\subsection{Completed baseline: semantic mapping and fixed-input tests}
+\subsection{Completed baseline: semantic mapping, fixed-input tests, and
+parametric preservation}
 
 The ordered SWAP semantics are now documented, all $(v,b,e,r_E)$ branches are
 enumerated, the fifth-wire reduced states are calculated, and the victim
 subsystem is compared with a clean routed reference. The resulting theorem is
 \cref{eq:caseii-fixed-input-theorem}. Information metrics and deterministic
 regression outputs are included in the public artifact.
+
+Beyond the four BB84 inputs, victim-channel preservation is now numerically
+verified across a 60-sample Bloch-sphere grid and a 200-sample pseudorandom
+pure-state sweep, with cross-backend confirmation from the Qiskit Statevector
+implementation. The use/read/retain/export privilege vocabulary has been
+formalized and is used to label threat model cells.
 
 \subsection{Immediate priority: exact detector reconstruction}
 
@@ -28,15 +35,14 @@ circuit's actual acceptance register. This requires:
 This step should precede any strong statement that the original educational
 detector has been bypassed.
 
-\subsection{Independent backend parity and software decomposition}
+\subsection{Completed: Qiskit parity and software decomposition}
 
-The NumPy implementation is the validated reference. A Qiskit implementation
-should reproduce branch probabilities, reduced states, wire order, and metrics
-within documented tolerances. In parallel, the legacy monolithic analysis file
-should be decomposed into independently testable circuit, measurement, metric,
-validation, plotting, and orchestration modules. These are engineering tasks,
-but they strengthen the credibility and maintainability of the scientific
-artifact.
+The NumPy implementation is the validated reference. The Qiskit Statevector
+backend now reproduces branch probabilities, reduced states, and metrics for all
+tested parameterizations within documented tolerances (Issues \#2 and \#3
+closed). A permanent \texttt{qiskit-parity} CI gate confirms this agreement on
+every push. Complete branch-level parity across all circuit configurations
+(Issue \#13) remains an open engineering task.
 
 \subsection{Formal information-flow property}
 

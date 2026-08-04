@@ -91,3 +91,39 @@ clean routed reference was $1.23\times10^{-32}$ and the minimum fidelity was
 $1$. These numbers establish exactness only for the reconstructed ideal model.
 The detector's original Boolean acceptance register remains unresolved, and the
 public software labels the current acceptance rule provisional.
+
+\subsection{Parametric victim-channel preservation}
+\label{sec:parametric-victim}
+
+The fixed-input result above holds for the four BB84 input states. A separate
+parametric sweep extends the check to arbitrary pure-state preparations.
+Alice's input qubit is set to
+$|\psi(\theta,\phi)\rangle
+= \cos\!\tfrac{\theta}{2}\ket{0}
++ e^{i\phi}\sin\!\tfrac{\theta}{2}\ket{1}$
+for $(\theta,\phi) \in [0,\pi)\times[0,2\pi)$.
+
+The test suite \texttt{tests/test\_parametric\_victim.py} runs two sweeps:
+\begin{enumerate}
+  \item A structured 60-sample grid: six values of $\theta$ by five values of
+  $\phi$ for each of the two Eve bases, covering the Bloch sphere at uniform
+  elevation spacing.
+  \item A 200-sample pseudorandom sweep (NumPy seed 42) drawing $\theta$ and
+  $\phi$ uniformly from their respective ranges.
+\end{enumerate}
+Across all 520 parameterized branches the maximum victim-subsystem trace
+distance was below $10^{-10}$ and the minimum fidelity exceeded
+$1-10^{-10}$. The Qiskit Statevector backend reproduces every branch
+independently at the same tolerance, providing cross-backend confirmation.
+
+\begin{cautionbox}[Numerical verification, not a formal channel theorem]
+Sweeping over $(\theta,\phi)$ demonstrates preservation for every tested
+pure-state preparation and for two independent simulation backends. It does not
+constitute a formal proof that the channel is trace-preserving and
+completely-positive on arbitrary inputs, including states entangled with an
+external reference. A Choi-state or entangled-reference test would establish
+complete channel equality and remains an open task.
+The correct paper language is: \emph{``Victim preservation was numerically
+verified across the tested continuous pure-state parameterization and
+independently reproduced with Qiskit Statevector simulation.''}
+\end{cautionbox}

@@ -69,3 +69,43 @@ an evidence registry in \cref{app:capability-registry}. This structure makes it
 possible to state three things at once: what an attacker can do directly, what
 can be achieved only by changing the objective or access assumptions, and which
 cells are contributions demonstrated or proposed by this project.
+
+\subsection{Privilege vocabulary: use, read, retain, export}
+\label{sec:privilege-vocab}
+
+Because ``access to a qubit'' spans very different capabilities, the threat
+model uses four verbs with precise, non-overlapping meanings.
+
+\begin{description}
+  \item[\textbf{Use.}] Apply a unitary or measurement to the qubit within a
+  sanctioned protocol step. Use is the only privilege that a well-designed
+  protocol needs to grant. It is strictly weaker than read: applying a gate does
+  not imply that the classical outcome is retained.
+
+  \item[\textbf{Read.}] Extract a classical value—destructively via measurement
+  or indirectly via a correlated classical side-channel—without authorization.
+  Read implies that an outcome bit is written to an adversary-accessible
+  register. Use does \emph{not} imply read: a controlled-$Z$ in the middle of a
+  circuit is a use but produces no classical side effect unless the circuit also
+  measures it.
+
+  \item[\textbf{Retain.}] Keep a quantum copy, or a quantum-correlated ancilla,
+  beyond the authorized handoff boundary. Retain does not require measuring the
+  copy at the time of theft; the adversary may defer measurement to gain
+  side-channel advantage later. Read does \emph{not} imply retain: measuring a
+  qubit immediately to get a classical bit produces only a classical residue, not
+  a quantum copy.
+
+  \item[\textbf{Export.}] Route a retained copy or classical residue to an
+  unauthorized classical or quantum output channel. Export is the final step that
+  produces exfiltration. An adversary may retain a copy inside the trusted
+  boundary indefinitely; export is what moves it outside.
+\end{description}
+
+These four privileges are ordered by what they require of the adversary:
+$\text{use} \subset \{\text{read, retain}\} \subset \text{export}$. The
+principal counterexamples are: (1) a measurement at the end of a legitimate gate
+sequence is a use plus a read but not a retain; (2) a coherent ancilla that
+accumulates information without any classical measurement is a retain but not a
+read until measured. The capability matrix in \cref{sec:capability-matrix} uses
+this vocabulary to label each cell's required privilege level.
