@@ -248,6 +248,25 @@ def get_github_issue(repo: str, token: str | None, issue_number: int) -> dict[st
     return github_api_json("GET", url, headers)
 
 
+def list_github_issue_comments(
+    repo: str, token: str | None, issue_number: int
+) -> list[dict[str, Any]]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    url = (
+        f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
+        "?per_page=100"
+    )
+    comments = github_api_json("GET", url, headers)
+    if isinstance(comments, list):
+        return comments
+    return []
+
+
 def triage_github_issue(
     repo: str,
     token: str | None,
@@ -279,6 +298,12 @@ def triage_github_issue(
         "The project’s current blocker path is detector semantics and parity verification, "
         "so this item should be treated as a priority ticket until it is explicitly closed."
     )
+
+    existing_comments = list_github_issue_comments(repo, token, issue_number)
+    for comment in existing_comments:
+        if str(comment.get("body", "")).strip() == comment_body:
+            return
+
     github_api_json(
         "POST",
         f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments",
