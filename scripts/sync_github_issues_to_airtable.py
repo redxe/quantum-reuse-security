@@ -63,6 +63,15 @@ def http_json(
         raise RuntimeError(f"HTTP {exc.code} {method} {url}\n{detail}") from exc
 
 
+def github_api_json(
+    method: str,
+    url: str,
+    headers: dict[str, str],
+    payload: dict[str, Any] | None = None,
+) -> Any:
+    return http_json(method, url, headers, payload)
+
+
 def field_name(env_name: str, default: str) -> str:
     value = os.getenv(env_name)
     if value is None:
@@ -191,6 +200,90 @@ def github_fetch_issues(
 def maybe_set(fields: dict[str, Any], name: str, value: Any) -> None:
     if name:
         fields[name] = value
+
+
+def infer_github_labels(title: str) -> list[str]:
+    lowered = title.lower()
+    labels: list[str] = []
+    if any(token in lowered for token in ("detector", "acceptance", "register")):
+        labels.extend(["research", "detector", "high-priority"])
+    elif any(token in lowered for token in ("qiskit", "parity")):
+        labels.extend(["qiskit", "verification", "high-priority"])
+    elif any(token in lowered for token in ("refactor", "monolith", "decompose")):
+        labels.extend(["refactor", "maintainability", "high-priority"])
+    else:
+        labels.append("enhancement")
+    return list(dict.fromkeys(labels))
+
+
+def create_github_issue(
+    repo: str,
+    token: str | None,
+    title: str,
+    body: str,
+    labels: list[str],
+) -> dict[str, Any]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    payload = {"title": title, "body": body, "labels": labels}
+    url = f"https://api.github.com/repos/{repo}/issues"
+    return github_api_json("POST", url, headers, payload)
+
+
+def get_github_issue(repo: str, token: str | None, issue_number: int) -> dict[str, Any]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    url = f"https://api.github.com/repos/{repo}/issues/{issue_number}"
+    return github_api_json("GET", url, headers)
+
+
+def triage_github_issue(
+    repo: str,
+    token: str | None,
+    issue_number: int,
+    title: str,
+) -> None:
+    labels = infer_github_labels(title)
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    existing_issue = get_github_issue(repo, token, issue_number)
+    existing_labels = [item.get("name", "") for item in existing_issue.get("labels", [])]
+    missing_labels = [label for label in labels if label not in existing_labels]
+    if missing_labels:
+        github_api_json(
+            "POST",
+            f"https://api.github.com/repos/{repo}/issues/{issue_number}/labels",
+            headers,
+            {"labels": missing_labels},
+        )
+
+    comment_body = (
+        "Tracked from the Airtable board and flagged for backlog triage. "
+        "The project’s current blocker path is detector semantics and parity verification, "
+        "so this item should be treated as a priority ticket until it is explicitly closed."
+    )
+    github_api_json(
+        "POST",
+        f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments",
+        headers,
+        {"body": comment_body},
+    )
 
 
 def issue_to_airtable_fields(
@@ -407,6 +500,7 @@ def main() -> None:
     issue_field_name = field_name("AIRTABLE_FIELD_ISSUE_NUMBER", "Issue Number")
     title_field_name = field_name("AIRTABLE_FIELD_TITLE", "Title")
     url_field_name = field_name("AIRTABLE_FIELD_URL", "URL")
+    status_field_name = field_name("AIRTABLE_FIELD_STATUS", "Status")
 
     issue_fields_by_number: dict[int, dict[str, Any]] = {}
     for issue in issues:
@@ -426,6 +520,8 @@ def main() -> None:
 
     created = 0
     updated = 0
+    created_from_airtable = 0
+    triaged_from_airtable = 0
 
     for issue in issues:
         issue_field, fields = issue_to_airtable_fields(issue, github_repo)
@@ -443,6 +539,61 @@ def main() -> None:
         else:
             updated += 1
 
+    records = airtable_list_records(
+        base_id=airtable_base,
+        table_name=airtable_table,
+        token=airtable_token,
+        fields=[issue_field_name, title_field_name, url_field_name, status_field_name],
+    )
+
+    for record in records:
+        record_fields = record.get("fields", {})
+        issue_number_value = record_fields.get(issue_field_name)
+        title_value = record_fields.get(title_field_name, "")
+        status_value = record_fields.get(status_field_name, "")
+        if not isinstance(title_value, str):
+            title_value = str(title_value or "")
+
+        if issue_number_value in (None, ""):
+            if not title_value.strip():
+                continue
+            issue_body = (
+                "Imported from the Airtable board for backlog triage. "
+                "This ticket did not have a GitHub issue number yet, so it has been created as a new issue."
+            )
+            issue = create_github_issue(
+                github_repo,
+                github_token,
+                title_value.strip(),
+                issue_body,
+                infer_github_labels(title_value.strip()),
+            )
+            number = int(issue["number"])
+            patch_fields: dict[str, Any] = {}
+            maybe_set(patch_fields, issue_field_name, number)
+            maybe_set(patch_fields, title_field_name, title_value.strip())
+            maybe_set(patch_fields, url_field_name, issue.get("html_url", ""))
+            airtable_patch_record(
+                base_id=airtable_base,
+                table_name=airtable_table,
+                token=airtable_token,
+                record_id=record["id"],
+                fields=patch_fields,
+            )
+            created_from_airtable += 1
+            continue
+
+        if isinstance(issue_number_value, (float, int)):
+            numeric_value = int(issue_number_value)
+        elif isinstance(issue_number_value, str) and issue_number_value.strip().isdigit():
+            numeric_value = int(issue_number_value.strip())
+        else:
+            continue
+
+        if not isinstance(status_value, str) or not status_value.strip():
+            triage_github_issue(github_repo, github_token, numeric_value, title_value.strip() or f"Issue #{numeric_value}")
+            triaged_from_airtable += 1
+
     print(
         json.dumps(
             {
@@ -451,6 +602,8 @@ def main() -> None:
                 "records_created": created,
                 "records_updated": updated,
                 "records_backfilled_by_creation_order": backfilled,
+                "airtable_rows_created_as_github_issues": created_from_airtable,
+                "airtable_rows_triaged": triaged_from_airtable,
                 "airtable_base": airtable_base,
                 "airtable_table": airtable_table,
                 "state_filter": state,
