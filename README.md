@@ -199,7 +199,15 @@ The analysis output also includes the full Boolean truth table artifact:
 - [VALIDATION_FRAMEWORK.md](docs/VALIDATION_FRAMEWORK.md)
 - [INTERVIEW_GUIDE.md](docs/INTERVIEW_GUIDE.md)
 
-## Research Draft 0.6 Artifacts
+## Research Draft Artifacts
+
+Primary (latest):
+
+- PDF manuscript: [docs/paper/v0.7.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_7.pdf](docs/paper/v0.7.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_7.pdf)
+- Standalone LaTeX entry file: [docs/paper/v0.7.0/main.tex](docs/paper/v0.7.0/main.tex)
+- Draft release notes: [docs/paper/v0.7.0/RELEASE_NOTES_v0.7.0.md](docs/paper/v0.7.0/RELEASE_NOTES_v0.7.0.md)
+
+Archived (v0.6.0):
 
 - PDF manuscript: [docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_6.pdf](docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_6.pdf)
 - Full source package (release asset): [Vi_Connelly_Known_State_Qubits_Research_Package_v0_6.zip](https://github.com/redxe/quantum-reuse-security/releases/download/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Package_v0_6.zip)
