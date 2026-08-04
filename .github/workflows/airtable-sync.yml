@@ -24,7 +24,6 @@ permissions:
 jobs:
   sync:
     environment: QRS
-    if: ${{ secrets.AIRTABLE_TOKEN != '' && secrets.AIRTABLE_BASE_ID != '' && secrets.AIRTABLE_TABLE_NAME != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,6 +35,16 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+
+      - name: Validate Airtable configuration
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
+        run: |
+          test -n "$AIRTABLE_TOKEN" || { echo "Missing AIRTABLE_TOKEN"; exit 1; }
+          test -n "$AIRTABLE_BASE_ID" || { echo "Missing AIRTABLE_BASE_ID"; exit 1; }
+          test -n "$AIRTABLE_TABLE_NAME" || { echo "Missing AIRTABLE_TABLE_NAME"; exit 1; }
 
       - name: Sync GitHub issues to Airtable
         env:
