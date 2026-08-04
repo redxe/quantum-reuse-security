@@ -1,0 +1,61 @@
+name: Airtable Issue Sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+  issues:
+    types:
+      - opened
+      - edited
+      - closed
+      - reopened
+      - assigned
+      - unassigned
+      - labeled
+      - unlabeled
+      - milestoned
+      - demilestoned
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  sync:
+    if: ${{ secrets.AIRTABLE_TOKEN != '' && secrets.AIRTABLE_BASE_ID != '' && secrets.AIRTABLE_TABLE_NAME != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Sync GitHub issues to Airtable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          AIRTABLE_SYNC_STATE: all
+          AIRTABLE_STATUS_OPEN: ${{ vars.AIRTABLE_STATUS_OPEN }}
+          AIRTABLE_STATUS_CLOSED: ${{ vars.AIRTABLE_STATUS_CLOSED }}
+          AIRTABLE_FIELD_ISSUE_NUMBER: ${{ vars.AIRTABLE_FIELD_ISSUE_NUMBER }}
+          AIRTABLE_FIELD_TITLE: ${{ vars.AIRTABLE_FIELD_TITLE }}
+          AIRTABLE_FIELD_STATUS: ${{ vars.AIRTABLE_FIELD_STATUS }}
+          AIRTABLE_FIELD_URL: ${{ vars.AIRTABLE_FIELD_URL }}
+          AIRTABLE_FIELD_LABELS: ${{ vars.AIRTABLE_FIELD_LABELS }}
+          AIRTABLE_FIELD_ASSIGNEES: ${{ vars.AIRTABLE_FIELD_ASSIGNEES }}
+          AIRTABLE_FIELD_MILESTONE: ${{ vars.AIRTABLE_FIELD_MILESTONE }}
+          AIRTABLE_FIELD_STATE: ${{ vars.AIRTABLE_FIELD_STATE }}
+          AIRTABLE_FIELD_REPOSITORY: ${{ vars.AIRTABLE_FIELD_REPOSITORY }}
+          AIRTABLE_FIELD_CREATED_AT: ${{ vars.AIRTABLE_FIELD_CREATED_AT }}
+          AIRTABLE_FIELD_UPDATED_AT: ${{ vars.AIRTABLE_FIELD_UPDATED_AT }}
+          AIRTABLE_FIELD_SYNCED_AT: ${{ vars.AIRTABLE_FIELD_SYNCED_AT }}
+        run: python scripts/sync_github_issues_to_airtable.py

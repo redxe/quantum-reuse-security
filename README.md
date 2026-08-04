@@ -102,6 +102,39 @@ python -m quantum_reuse fixed-input-summary
 pytest -q
 ```
 
+## Optional Airtable Kanban Sync
+
+This repository includes an optional GitHub Issues -> Airtable sync:
+
+- Script: `scripts/sync_github_issues_to_airtable.py`
+- Workflow: `.github/workflows/airtable-sync.yml`
+
+Required GitHub repository secrets:
+
+- `AIRTABLE_TOKEN`
+- `AIRTABLE_BASE_ID` (format: `app...`)
+- `AIRTABLE_TABLE_NAME`
+
+Optional GitHub repository variables (field mapping):
+
+- `AIRTABLE_FIELD_ISSUE_NUMBER` (default: `Issue Number`)
+- `AIRTABLE_FIELD_TITLE` (default: `Title`)
+- `AIRTABLE_FIELD_STATUS` (default: `Status`)
+- `AIRTABLE_FIELD_URL` (default: `URL`)
+- `AIRTABLE_FIELD_LABELS` (default: `Labels`)
+- `AIRTABLE_FIELD_ASSIGNEES` (default: `Assignees`)
+- `AIRTABLE_FIELD_MILESTONE` (default: `Milestone`)
+- `AIRTABLE_FIELD_STATE` (default: `State`)
+- `AIRTABLE_FIELD_REPOSITORY` (default: `Repository`)
+- `AIRTABLE_FIELD_CREATED_AT` (default: `Created At`)
+- `AIRTABLE_FIELD_UPDATED_AT` (default: `Updated At`)
+- `AIRTABLE_FIELD_SYNCED_AT` (default: `Synced At`)
+- `AIRTABLE_STATUS_OPEN` (default: `Todo`)
+- `AIRTABLE_STATUS_CLOSED` (default: `Done`)
+
+The workflow runs on issue events, every 6 hours, and manually via
+`workflow_dispatch`.
+
 ## Reproducibility Outputs
 
 `python -m quantum_reuse analyze --output run_output` generates:
