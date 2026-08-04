@@ -1,0 +1,5 @@
+TeX files checked: 25
+Labels found: 61
+Internal references checked: 28
+Errors: 0
+Warnings: 0

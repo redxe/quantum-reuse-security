@@ -1,0 +1,29 @@
+\section{Limitations and Responsible Interpretation}
+\label{sec:limitations}
+
+\begin{limitbox}[What the paper does not establish]
+\begin{itemize}
+  \item It does not establish novelty of coherent measurement deferral or
+  teleportation cleanup; those follow from known principles.
+  \item It does not establish an attack on BB84 under the standard channel-only
+  threat model. The fixed-input result assumes access to source preparation
+  controls or an equivalent privileged implementation boundary.
+  \item It does not yet identify the exact Boolean acceptance register of the
+  complete original educational detector. The current acceptance rule is
+  provisional.
+  \item It does not demonstrate malware on production quantum hardware, and the
+  validated reference backend is an ideal NumPy model rather than a device run.
+  \item It does not yet provide full branch-level Qiskit parity or a malicious
+  compiler prototype.
+  \item It does not show that encrypted data can always be decrypted or usefully
+  exploited after copying.
+  \item Agreement between the coherent cleanup implementation and the SWAP
+  reference on $\ket{\psi00}$ does not imply global unitary equivalence on
+  arbitrary three-qubit inputs.
+\end{itemize}
+\end{limitbox}
+
+The paper instead offers a carefully bounded synthesis: a provable cleanup
+identity, an exact export-level state comparison, a fixed-input source-access
+leakage result, a general information-disturbance boundary, and a continuously
+tested research program for secure qubit reuse.

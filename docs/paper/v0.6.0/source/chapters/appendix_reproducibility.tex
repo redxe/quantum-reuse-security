@@ -1,0 +1,34 @@
+\section{Reproducibility Package}
+\label{app:reproducibility}
+
+The primary artifact is maintained at
+\url{https://github.com/redxe/quantum-reuse-security}. This manuscript archive
+also contains a snapshot of the files needed to inspect Revision 0.6:
+
+\begin{itemize}
+  \item \texttt{main.tex}, chapter files, figures, and
+  \texttt{references.bib};
+  \item \texttt{src/parameterized\_fifth\_wire\_analysis.py};
+  \item \texttt{data/corrected\_quirk\_circuits.json};
+  \item branch-conditioned, averaged fifth-wire, and distinguishability CSV
+  outputs;
+  \item the original supplied 32-amplitude arrays and reduced-density-matrix
+  data used for the export-level comparison;
+  \item CSV outputs for the teleportation, BB84, and hidden-correlation tests;
+  \item generated plots and LaTeX circuit figures; and
+  \item \texttt{src/audit\_manuscript.py}, which checks included files,
+  duplicate labels, unresolved internal references, and stale source names.
+\end{itemize}
+
+The exact fifth-wire analysis uses NumPy rather than a quantum SDK so the core
+linear algebra and branch enumeration remain visible and version-independent.
+The public package exposes
+\begin{lstlisting}[style=python]
+python -m quantum_reuse analyze --output run_output
+python -m quantum_reuse fixed-input-summary
+pytest -q
+\end{lstlisting}
+The repository's continuous-integration workflow tests Python 3.9, 3.11, and
+3.13 and compares regenerated deterministic CSV outputs with committed
+baselines at absolute tolerance $10^{-12}$. Qiskit is treated as an independent
+parity target rather than the present source of truth.

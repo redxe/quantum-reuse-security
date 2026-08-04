@@ -1,0 +1,498 @@
+\section{Case Study II: Exact Analysis of an Educational Spy Detector}
+\label{sec:case-study-ii}
+
+This case study began with something visually simple: the baseline circuit had
+one amplitude pattern, the ordinary spy changed it, and the advanced circuit
+seemed to put the pattern back. That observation was interesting, but it was not
+yet a result. A picture can hide phase, wire order, discarded registers, and
+correlation. The useful question is therefore not merely whether two amplitude
+displays look alike. It is:
+
+\begin{quote}
+What, exactly, is the same at the end of the circuit, and what has quietly
+changed somewhere that the displayed histogram does not show?
+\end{quote}
+
+The source example is the ``Quantum Spy Hunter'' circuit from
+\emph{Programming Quantum Computers} \cite{johnston2019programming}. The
+maintained errata corrects the unconditional detection probability for the
+simple intercept-and-resend construction from $25\%$ to $12.5\%$
+\cite{oreilly2026errata}. The author later supplied the machine-readable Quirk
+column arrays and complete five-wire output amplitudes for three circuits:
+
+\begin{enumerate}
+  \item a baseline with no spy;
+  \item an ordinary intercept-and-resend construction; and
+  \item an advanced source-access construction.
+\end{enumerate}
+
+The identity blocks labeled \texttt{inputA3}, \texttt{inputR2}, and
+\texttt{inputB3} are notes rather than operations. Likewise, the probability,
+Bloch, density, and amplitude displays observe the simulation but do not change
+the state. The circuit figures below omit those non-operational widgets and
+replace them with separate amplitude-density figures. Every actual gate in the
+supplied column arrays is retained.
+
+\subsection{Reading the circuit literally}
+
+There are three details worth stating before doing any algebra.
+
+First, the supplied reconstruction contained a repeated measurement checkpoint
+on Alice's selector wires. No operation changes those selector wires between
+the two measurements, so the second checkpoint is redundant in the ideal
+projective model. Revision 0.6 and the corrected repository artifact retain one
+Alice checkpoint immediately after the two initial Hadamards. This correction
+clarifies the intended semantic flow without changing the branch values used by
+later classically controlled operations.
+
+Second, the controls on $q_1$ and $q_3$ act on Hadamard gates. They are
+controlled-$H$ operations, not an unconnected control marker followed by an
+independent Hadamard. The vertical connections are explicit in all three
+figures.
+
+Third, the two routing operations are ordered rather than simultaneous. The
+ordinary and advanced circuits apply
+\begin{equation}
+  \operatorname{SWAP}(q_3,q_4)
+  \quad\text{followed by}\quad
+  \operatorname{SWAP}(q_2,q_4).
+  \label{eq:caseii-swap-order}
+\end{equation}
+They are drawn in separate columns with a small visual spacer. The spacer is an
+identity in time, not a new operation; its only purpose is to keep the two SWAP
+lines from becoming one unreadable knot.
+
+The meter symbols should also be read with Quirk's simulation semantics in
+mind. Later controls conditioned on a measured wire are classical in the
+operational interpretation, while Quirk can retain a deferred-measurement
+purification internally in order to produce a complete amplitude export. The
+paper uses the gate order exactly as supplied and uses the exported amplitudes,
+rather than an independently guessed collapse history, for the state analysis.
+
+\input{figures/case_study_ii_circuits.tex}
+
+For reference, the operational columns represented by the three diagrams are
+summarized in \cref{tab:caseii-gate-order}. Display-only columns and identity
+labels are not listed.
+
+\begin{table}[ht]
+\centering
+\caption{Gate order reconstructed from the supplied Quirk column arrays.}
+\label{tab:caseii-gate-order}
+\begin{tabular}{@{}p{0.16\textwidth}p{0.75\textwidth}@{}}
+\toprule
+Variant & Ordered operations \\
+\midrule
+Baseline &
+$H(q_0),H(q_1)$; $M(q_0),M(q_1)$;
+$\cnot(q_0,q_2)$; $C_H(q_1,q_2)$;
+$H(q_3)$; $M(q_3)$; $C_H(q_3,q_2)$; $M(q_2)$.\\[0.4em]
+Intercept--resend &
+$H(q_0),H(q_1)$; $M(q_0),M(q_1)$;
+$\cnot(q_0,q_2)$; $C_H(q_1,q_2)$;
+$H(q_2),H(q_3)$; $M(q_2),X(q_3)$;
+$\operatorname{SWAP}(q_3,q_4)$;
+$\operatorname{SWAP}(q_2,q_4)$;
+$H(q_3)$; $M(q_3)$; $C_H(q_3,q_2)$; $M(q_2)$.\\[0.4em]
+Advanced &
+$H(q_0),H(q_1)$; $M(q_0),M(q_1)$;
+$\cnot(q_0,q_3)$; $C_H(q_1,q_3)$;
+$\cnot(q_0,q_2)$; $C_H(q_1,q_2)$;
+$H(q_2)$; $M(q_2)$;
+$\operatorname{SWAP}(q_3,q_4)$;
+$\operatorname{SWAP}(q_2,q_4)$;
+$H(q_3)$; $M(q_3)$; $C_H(q_3,q_2)$; $M(q_2)$.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The baseline detection rule}
+
+Let Alice choose a value bit $v$ and a basis bit $b$. The corresponding BB84
+state is
+\begin{equation}
+  \ket{\psi_{v,b}}=H^bX^v\ket{0}.
+  \label{eq:caseii-bb84-state}
+\end{equation}
+The four cases are $\ket{0}$, $\ket{1}$, $\ket{+}$, and $\ket{-}$. Bob chooses
+his own basis bit $c$, applies $H^c$, and measures a value $y$. If Bob chose the
+same basis as Alice, then
+\begin{equation}
+  H^c\ket{\psi_{v,b}}
+  =H^bH^bX^v\ket{0}
+  =\ket{v},
+  \qquad c=b.
+\end{equation}
+The ideal detection event is therefore
+\begin{equation}
+  D=\{c=b\text{ and }y\neq v\}.
+  \label{eq:caseii-detection-event}
+\end{equation}
+Without a spy, $\Prb(D)=0$.
+
+\subsection{Why ordinary intercept-and-resend is visible}
+
+An ordinary attacker selects a random basis $e$, measures the traveling qubit,
+and sends a replacement prepared from the observed result. Three independent
+things must happen for the educational circuit to catch the attacker on a
+given unsifted transmission:
+
+\begin{enumerate}
+  \item Bob must choose Alice's basis, which occurs with probability $1/2$;
+  \item the attacker must choose the wrong basis, also with probability $1/2$;
+  \item Bob must receive the wrong value after that wrong-basis intervention,
+  which occurs with probability $1/2$.
+\end{enumerate}
+
+\begin{proposition}[Detection probability]
+For uniformly random independent $b$, $c$, and $e$,
+\begin{equation}
+  \Prb(D)=\frac12\cdot\frac12\cdot\frac12
+  =\frac18=12.5\%.
+  \label{eq:caseii-detection-probability}
+\end{equation}
+Conditioned on Alice and Bob selecting the same basis, the induced error rate is
+$25\%$.
+\end{proposition}
+
+This is often summarized by saying that measurement disturbs the state. That
+summary is true, but it is too vague to carry a security proof. The actual
+reason is that the BB84 preparation family contains nonorthogonal states. A
+measurement that distinguishes one basis cannot preserve the conjugate basis in
+every case. The circuit makes that geometry visible as an altered output
+distribution \cite{fuchs1996information}.
+
+\subsection{The advanced construction and the source-access interpretation}
+
+The advanced circuit uses Alice's selector wires twice. They first control an
+$X$ and a controlled-$H$ preparation on $q_3$, and later control the same type
+of preparation on $q_2$. At an abstract level, this is consistent with
+executing a known preparation family on two initialized targets:
+\begin{equation}
+  \ket{v,b}\ket{0}_S\ket{0}_E
+  \longmapsto
+  \ket{v,b}\ket{\psi_{v,b}}_S\ket{\psi_{v,b}}_E.
+  \label{eq:caseii-prepare-twice}
+\end{equation}
+
+This is not universal cloning. The circuit is not handed an arbitrary unknown
+$\ket{\psi}$ and asked to discover how to copy it. It is given access to the
+controls that define a finite preparation procedure and runs that procedure
+more than once. There is no contradiction with the no-cloning theorem
+\cite{wootters1982cloning}.
+
+That distinction also changes the security model. A channel-only spy sees a
+traveling quantum state. A source-access spy can reach the value and basis
+controls, insert another target into the preparation path, or obtain a
+correlated emission from the source. The advanced circuit should therefore be
+read as a source-compromise or privileged-compilation example, not as a proof
+that standard BB84 is broken under its ordinary assumptions
+\cite{tamaki2014loss,jiang2024sidechannel}.
+
+The abstract interpretation is useful, but the complete export lets us say
+something stronger and more exact without guessing the semantic name of every
+wire.
+
+\subsection{Semantic wire roles through the routing network}
+
+The two ordered SWAPs implement the three-wire permutation
+\begin{equation}
+  (q_2,q_3,q_4)\longmapsto(q_3,q_4,q_2).
+  \label{eq:caseii-semantic-permutation}
+\end{equation}
+The physical wires do not move, but their logical responsibilities rotate.
+\Cref{tab:caseii-semantic-routing} records the interpretation used by the
+fixed-input implementation.
+
+\begin{table}[ht]
+\centering
+\caption{Semantic roles immediately before and after the two SWAPs.}
+\label{tab:caseii-semantic-routing}
+\begin{tabularx}{\textwidth}{@{}cXX@{}}
+\toprule
+Physical wire & Before routing & After routing \\
+\midrule
+$q_2$ & Original signal after spy-side basis rotation and measurement &
+Receiver-visible signal, inherited from the separately prepared $q_3$ branch \\
+$q_3$ & Separately prepared replacement or duplicate signal & Clean workspace,
+inherited from $q_4$, used for the receiver's basis selection \\
+$q_4$ & Clean routing workspace initialized to $\ket{0}$ & Retained spy-side
+branch, inherited from the former $q_2$ state \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The fifth physical wire is therefore the natural candidate latch. The security
+property follows the logical state through the permutation rather than attaching
+permanent meaning to a physical wire number.
+
+\subsection{Exact reduced-state reconstruction}
+
+Let $c^{(x)}_{e,j}$ be the complete output amplitude for circuit variant $x$.
+The index $e\in\{0,1\}$ labels the two 16-amplitude blocks associated with the
+fifth exported wire, and $j\in\{0,\ldots,15\}$ labels the four-wire register
+covered by the final amplitude display. After normalizing the supplied arrays,
+the reduced state visible to that four-wire display is
+\begin{equation}
+  \rho_x[j,k]
+  =\sum_{e=0}^{1}c^{(x)}_{e,j}c^{(x)*}_{e,k}.
+  \label{eq:caseii-partial-trace}
+\end{equation}
+This is simply a partial trace written directly in the block ordering used by
+the export.
+
+The resulting computational-basis probability densities are shown in
+\cref{fig:caseii-probability-densities}. They are not screenshots; the bars are
+generated in LaTeX from the complete amplitude arrays.
+
+\begin{figure}[tbp]
+\centering
+\input{figures/case_study_ii_probability_densities.tex}
+\caption{Computational-basis probability densities on the four-wire display
+register after tracing out the fifth exported wire. The baseline and advanced
+panels coincide component by component. The ordinary intercept--resend panel
+does not.}
+\label{fig:caseii-probability-densities}
+\end{figure}
+
+The diagonal vectors are
+\begin{align}
+\operatorname{diag}(\rho_0)
+&=\operatorname{diag}(\rho_A)\nonumber\\
+&=\frac1{16}(2,0,1,1,0,2,1,1,1,1,2,0,1,1,0,2),
+\label{eq:caseii-matching-diagonals}\\
+\operatorname{diag}(\rho_I)
+&=\frac1{16}(1,1,1,1,1,1,1,1,2,2,2,2,0,0,0,0),
+\label{eq:caseii-intercept-diagonal}
+\end{align}
+where $0$, $I$, and $A$ denote baseline, intercept--resend, and advanced.
+
+\begin{proposition}[Exact histogram equivalence]
+For the supplied exports,
+\begin{equation}
+  \operatorname{diag}(\rho_A)=\operatorname{diag}(\rho_0)
+\end{equation}
+up to floating-point export error. The total-variation distance between the two
+probability vectors is $8.90\times10^{-9}$.
+\end{proposition}
+
+\begin{proof}
+For each basis index $j$, Eq.~\eqref{eq:caseii-partial-trace} gives the observed
+probability as
+\begin{equation}
+  p_x(j)=|c^{(x)}_{0,j}|^2+|c^{(x)}_{1,j}|^2.
+\end{equation}
+Evaluating these sums componentwise for the baseline and advanced exports gives
+Eq.~\eqref{eq:caseii-matching-diagonals}. The remaining discrepancy is at the
+scale of the floating-point amplitudes supplied by the simulator.
+\end{proof}
+
+This is the first important result. A verifier that only repeats the final
+computational-basis measurement on those four wires cannot distinguish the
+advanced circuit from the baseline. The circuit has restored every answer that
+this particular test asks for.
+
+\subsection{The state is not restored}
+
+The interesting part is that matching every displayed probability is still not
+the same as matching the quantum state. Probabilities occupy the diagonal of a
+density matrix. Relative phase and coherence live in the off-diagonal entries.
+The advanced circuit restores the diagonal and changes the rest.
+
+\begin{table}[ht]
+\centering
+\caption{Exact reduced-state diagnostics calculated from the supplied
+five-wire amplitude arrays. Fidelity and trace distance use the pure baseline
+state as the reference.}
+\label{tab:caseii-density-metrics}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Variant & Quirk coherence & Purity & Entropy & Fidelity & Trace distance & $Z$-TVD\\
+\midrule
+Baseline & $1.0000$ & $1$ & $0$ & $1$ & $0$ & $0$\\
+Intercept--resend & $0.5000$ & $1/2$ & $1$ & $1/4$ & $0.8090$ & $0.3750$\\
+Advanced & $0.5000$ & $1/2$ & $1$ & $0.4268$ & $0.6184$ & $8.90\times10^{-9}$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For the advanced export,
+\begin{equation}
+  F(\rho_0,\rho_A)
+  =\frac{2+\sqrt2}{8}
+  \approx0.4268,
+  \label{eq:caseii-fidelity}
+\end{equation}
+and
+\begin{equation}
+  D(\rho_0,\rho_A)
+  =\frac12\norm{\rho_0-\rho_A}_1
+  \approx0.6184.
+  \label{eq:caseii-trace-distance}
+\end{equation}
+With equal prior probabilities, the Helstrom measurement could distinguish the
+baseline and advanced reduced states with success probability
+\begin{equation}
+  P_{\mathrm{distinguish}}
+  =\frac{1+D(\rho_0,\rho_A)}{2}
+  \approx0.8092.
+  \label{eq:caseii-helstrom}
+\end{equation}
+
+The reduced density matrices are shown in
+\cref{fig:caseii-density-matrices}. Blue cells are positive real entries,
+orange cells are negative, and stronger color indicates larger magnitude. The
+advanced matrix has exactly the baseline diagonal while its off-diagonal
+pattern is visibly different.
+
+\begin{figure}[tbp]
+\centering
+\input{figures/case_study_ii_density_matrices.tex}
+\caption{Real parts of the reconstructed $16\times16$ reduced density
+matrices. Blue denotes positive entries and orange denotes negative entries.
+The baseline is pure. Both modified circuits have purity $1/2$. The advanced
+circuit preserves the baseline diagonal but changes the coherence pattern away
+from the diagonal.}
+\label{fig:caseii-density-matrices}
+\end{figure}
+
+There is a direct way to see where that lost purity went. The branch-resolved
+amplitudes are plotted in \cref{fig:caseii-branch-amplitudes}. In the baseline,
+the second fifth-wire branch is empty. In both modified circuits, two branches
+remain populated.
+
+\begin{figure}[tbp]
+\centering
+\input{figures/case_study_ii_branch_amplitudes.tex}
+\caption{Real amplitudes separated by the fifth exported wire. Solid bars show
+the $e=0$ branch and hatched bars show the $e=1$ branch. The baseline occupies
+one branch. The modified circuits distribute amplitude across two orthogonal
+branches.}
+\label{fig:caseii-branch-amplitudes}
+\end{figure}
+
+For each modified circuit, the complete five-wire state admits the form
+\begin{equation}
+  \ket{\Psi_x}
+  =\frac{1}{\sqrt2}
+   \left(
+     \ket{\chi^{(x)}_0}\ket{0}_e
+     +\ket{\chi^{(x)}_1}\ket{1}_e
+   \right),
+  \qquad
+  \braket{\chi^{(x)}_0|\chi^{(x)}_1}=0.
+  \label{eq:caseii-schmidt}
+\end{equation}
+Tracing out the fifth wire gives
+\begin{equation}
+  \rho_x
+  =\frac12\ket{\chi^{(x)}_0}\!\bra{\chi^{(x)}_0}
+  +\frac12\ket{\chi^{(x)}_1}\!\bra{\chi^{(x)}_1},
+\end{equation}
+so
+\begin{equation}
+  \Tr(\rho_x^2)=\frac12,
+  \qquad
+  S(\rho_x)=1\ \text{bit}.
+  \label{eq:caseii-one-bit}
+\end{equation}
+
+At first glance, the advanced circuit appears to put everything back. The exact
+calculation says something more precise: it puts back the entire
+computational-basis histogram while leaving one bit of branch correlation in a
+wire the histogram does not include. It restores the visible answer to one
+question, not the original state.
+
+\begin{rem}[What the exact data establishes]
+The advanced export is perfectly stealthy against the supplied four-wire
+$Z$-basis histogram test in the ideal simulator output. It is not stealthy
+against complete state verification, complementary-basis tests, or an optimal
+distinguishing measurement.
+\end{rem}
+
+\subsection{Fixed-input fifth-wire identification}
+
+The randomized export establishes hidden correlation but averages together the
+preparation labels and measurement branches. The accompanying exact simulator
+therefore fixes Alice's value $v$, Alice's basis $b$, and the spy's measurement
+basis $e$, then enumerates the measurement result $r_E$ rather than sampling
+shots. Let $\rho_4^{(v,b,e,r_E)}$ denote the final state of the retained physical
+wire $q_4$ after routing.
+
+\begin{proposition}[Branch-conditioned retained-wire state]
+In the reconstructed source-access model,
+\begin{equation}
+  \rho_4^{(v,b,e,r_E)}=\ket{r_E}\!\bra{r_E}.
+  \label{eq:caseii-branch-retained-state}
+\end{equation}
+After averaging over the spy's measurement outcome,
+\begin{equation}
+  \rho_4^{(v,b,e)}=
+  \begin{cases}
+    \ket{v}\!\bra{v}, & e=b,\\[2pt]
+    I/2, & e\neq b.
+  \end{cases}
+  \label{eq:caseii-fixed-input-theorem}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+When $e=b$, measurement occurs in the preparation basis and returns
+$r_E=v$ deterministically. When $e\neq b$, the BB84 state is unbiased in the
+measurement basis, so $r_E$ is uniform. The SWAP permutation in
+\cref{eq:caseii-semantic-permutation} then moves the post-measurement $q_2$
+branch to $q_4$.
+\end{proof}
+
+Consequently, for fixed $b$ and $e$,
+\begin{equation}
+D\!\left(\rho_4^{(0,b,e)},\rho_4^{(1,b,e)}\right)
+=\begin{cases}1,&e=b,\\0,&e\neq b.\end{cases}
+\label{eq:caseii-value-distinguishability}
+\end{equation}
+The optimal single-shot value guess is therefore perfect in the matching-basis
+case and no better than random in the mismatched-basis case. If $e$ is uniform
+and later forgotten, the trace distance is $1/2$, giving a $75\%$ optimal value
+guess and $1-h_2(1/4)\approx0.188722$ bits of mutual information. If the spy
+retains $e$ as side information, the average value information is $0.5$ bits per
+attacked transmission.
+
+The same branch enumeration checks the legitimate subsystem after routing. For
+every fixed $(v,b,e,r_E)$ branch, the reconstructed victim state has fidelity
+$1$ with its clean routed reference and trace distance at most
+$1.23\times10^{-32}$ in the numerical run. Under the provisional acceptance
+rule
+\begin{equation}
+  \mathrm{accept}=(c\neq b)\lor(r_B=v),
+  \label{eq:caseii-provisional-acceptance}
+\end{equation}
+matched-basis acceptance is also unity to floating-point precision.
+
+\begin{rem}[Remaining detector ambiguity]
+Equation~\eqref{eq:caseii-provisional-acceptance} is a reasonable BB84-style
+sifting rule, but it has not yet been proven to be the exact Boolean acceptance
+register implemented by the full original educational circuit. The retained
+wire's value leakage is established for the reconstructed source-access model;
+the original detector-register semantics remain an explicit roadmap item.
+\end{rem}
+
+\subsection{Why this case matters beyond the educational circuit}
+
+The lesson is not that a state government can automatically recover arbitrary
+encrypted quantum data. Encryption and no-cloning still matter, and arbitrary
+nonorthogonal states cannot be learned perfectly while remaining unchanged.
+The narrower and more defensible lesson is that a privileged compiler, runtime,
+or source implementation may have access to classical preparation labels,
+orthogonal intermediate data, or reusable workspace that a channel-only
+security model never grants to an attacker.
+
+That creates a gap between two statements that sound similar but are not:
+
+\begin{align}
+  &\text{``The final bitstring distribution is unchanged.''}\label{eq:caseii-same-histogram}\\
+  &\text{``The computation and its information flow are unchanged.''}\label{eq:caseii-same-computation}
+\end{align}
+
+The advanced export satisfies the first statement for the tested register and
+fails the second. That difference is the bridge from this educational example
+to the broader malicious-reuse threat model developed later in the paper.

@@ -1,0 +1,60 @@
+\section{From Reuse Optimization to a Malicious-Reuse Threat Model}
+\label{sec:threat-model}
+
+\subsection{Adversary}
+
+Consider an adversary with one or more privileged capabilities:
+
+\begin{itemize}
+  \item modifying a compiler optimization or mapping pass;
+  \item altering a runtime scheduler's qubit-liveness decisions;
+  \item inserting gates into a circuit after user inspection;
+  \item modifying pulse-level implementations beneath trusted gate names;
+  \item accessing source-preparation controls or classical parameters;
+  \item allocating undocumented physical qubits or channels.
+\end{itemize}
+
+The adversary may be a compromised dependency, malicious cloud operator,
+insider, supply-chain attacker, or high-capability state actor. The threat does
+not require that the adversary can violate quantum mechanics. It exploits the
+software stack and whatever information is classically accessible or
+orthogonally encoded.
+
+\subsection{Attack pattern}
+
+A generic malicious-reuse pattern is:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{Find workspace.} Identify qubits that are clean, dead, or soon
+  to be reclaimed.
+  \item \textbf{Select a secret-dependent signal.} Target basis labels,
+  classical parameters, key-dependent branches, syndrome bits, intermediate
+  computational-basis values, or source controls.
+  \item \textbf{Couple reversibly.} Compute $g(x)$ into hidden workspace using
+  CNOT, Toffoli, controlled rotations, or a lower-level pulse substitution.
+  \item \textbf{Preserve the checked output.} Avoid touching the victim path,
+  uncompute temporary changes, or exploit the fact that the victim checks only
+  a restricted measurement basis.
+  \item \textbf{Extract.} Measure the attacker register later, route it to an
+  unauthorized output, or expose it through timing, crosstalk, or control data.
+\end{enumerate}
+
+\begin{cautionbox}[Encryption is not automatically defeated]
+Copying ciphertext does not reveal plaintext when the encryption remains
+secure. The attack matters when it reaches plaintext, keys, secret preparation
+choices, key-dependent intermediates, metadata, or ciphertext that was itself
+supposed to remain private. The paper therefore claims a potential covert
+\emph{information-flow channel}, not a universal cryptanalytic break.
+\end{cautionbox}
+
+\subsection{Why reclaimed qubits are attractive}
+
+Reclaimed qubits are useful to both optimizer and attacker because they are
+expected to stop affecting the legitimate computation. An unauthorized pass can
+attempt to hide among valid reuse transformations. Moreover, if the user expects
+fewer physical qubits after compilation, extra operations on recycled qubits may
+not appear as a simple increase in declared width.
+
+This does not make reuse unsafe by default. It means reuse decisions should be
+attested and information-flow checked, much as classical compilers and memory
+allocators require trust boundaries.

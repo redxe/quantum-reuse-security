@@ -69,3 +69,9 @@ Recommended release assets to attach:
 - data/averaged_fifth_wire_states.csv
 - data/distinguishability_metrics.csv
 - Optional: run_output/run_report.md generated from a clean local run
+
+Manuscript artifacts (ingested in repository and uploaded to release):
+
+- docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_6.pdf
+- docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Package_v0_6.zip
+- docs/paper/v0.6.0/source/main.tex

@@ -1,0 +1,101 @@
+\section{The General Boundary: What Can Be Leaked Without Disturbance?}
+\label{sec:information-boundary}
+
+The two case studies suggest a broader question. Can an attacker couple a hidden
+ancilla to a victim computation, learn something, and leave the victim state
+unchanged?
+
+\subsection{No information without disturbance for nonorthogonal pure states}
+
+\begin{theorem}[Information-disturbance boundary]
+Let a unitary $U$ act on a system and an environment initialized in
+$\ket{0}_E$. Suppose that for two possible pure states,
+\begin{equation}
+  U\ket{\psi_i}_S\ket{0}_E
+  =\ket{\psi_i}_S\ket{e_i}_E,
+  \qquad i\in\{0,1\}.
+  \label{eq:nondisturbing-map}
+\end{equation}
+If $\braket{\psi_0|\psi_1}\neq 0$, then
+$|\braket{e_0|e_1}|=1$. Therefore the environment states are physically
+indistinguishable up to a phase and contain no usable information about $i$.
+\end{theorem}
+
+\begin{proof}
+Unitarity preserves inner products:
+\begin{align}
+  \braket{\psi_0|\psi_1}
+  &=\big(\bra{\psi_0}\bra{0}\big)
+    U^\dagger U
+    \big(\ket{\psi_1}\ket{0}\big)\\
+  &=\braket{\psi_0|\psi_1}\braket{e_0|e_1}.
+\end{align}
+When $\braket{\psi_0|\psi_1}\neq 0$, division gives
+$\braket{e_0|e_1}=1$ up to an irrelevant phase convention. Thus the two
+environment states cannot be distinguished.
+\end{proof}
+
+This compact argument is one form of the no-information-without-disturbance
+principle \cite{fuchs1996information,koashi2002operations}. It explains why an
+attacker cannot universally hide information about arbitrary nonorthogonal
+states while preserving them exactly.
+
+\begin{corollary}[Orthogonal data is different]
+If $\braket{\psi_0|\psi_1}=0$, the theorem imposes no equality constraint on
+$\ket{e_0}$ and $\ket{e_1}$. Orthogonal labels may be copied into an ancilla
+without changing the source states.
+\end{corollary}
+
+For example,
+\begin{equation}
+  \cnot\ket{x}_S\ket{0}_E=\ket{x}_S\ket{x}_E,
+  \qquad x\in\{0,1\}.
+  \label{eq:classical-copy}
+\end{equation}
+This is a quantum circuit implementing a classical copy on the computational
+basis. It is exactly the kind of operation that can leak classical control
+bits, basis labels, syndrome bits, key-dependent branches, or classical
+ciphertext without changing the original basis state.
+
+\subsection{The same gate disturbs superpositions}
+
+Let
+\begin{equation}
+  \ket{\psi(\theta)}
+  =\cos\frac{\theta}{2}\ket{0}
+  +\sin\frac{\theta}{2}\ket{1}.
+\end{equation}
+After a hidden CNOT to $E$,
+\begin{equation}
+  \ket{\Psi}_{SE}
+  =\cos\frac{\theta}{2}\ket{00}
+  +\sin\frac{\theta}{2}\ket{11}.
+\end{equation}
+Tracing out $E$ removes the off-diagonal coherence:
+\begin{equation}
+  \rho_S=
+  \begin{pmatrix}
+    \cos^2(\theta/2)&0\\
+    0&\sin^2(\theta/2)
+  \end{pmatrix}.
+\end{equation}
+The victim-state fidelity is
+\begin{equation}
+  F(\theta)=\bra{\psi(\theta)}\rho_S\ket{\psi(\theta)}
+  =\cos^4\frac{\theta}{2}+\sin^4\frac{\theta}{2}
+  =1-\frac12\sin^2\theta.
+  \label{eq:fidelity-curve}
+\end{equation}
+At $\theta=0$ or $\pi$, the input is a classical basis state and the attack is
+invisible. At $\theta=\pi/2$, the input is $\ket{+}$ and the fidelity falls to
+$1/2$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/classical_quantum_leakage_boundary.pdf}
+\caption{The classical-quantum leakage boundary for a hidden CNOT. The
+computational-basis population remains unchanged for every $\theta$, but the
+$X$-basis coherence is destroyed. An observer who checks only a $Z$ histogram
+can miss a large state disturbance.}
+\label{fig:leakage-boundary}
+\end{figure}

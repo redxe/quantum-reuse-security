@@ -1,0 +1,82 @@
+\documentclass[10pt]{article}
+\input{preamble}
+
+\begin{document}
+
+\begin{center}
+\vspace*{0.25em}
+\color{black!55}\rule{\textwidth}{0.55pt}
+\vspace{0.75em}
+
+{\LARGE\bfseries Known-State Qubits as Both Resource and Risk\par}
+\vspace{0.3em}
+{\large Coherent Cleanup, Qubit Reuse, and Stealthy Information Leakage in Quantum Circuits\par}
+\vspace{0.75em}
+\color{black!55}\rule{\textwidth}{0.55pt}
+\vspace{0.85em}
+
+{\large Vi Connelly$^{1}$ and GPT-5.6 Thinking (OpenAI)$^{2,\dagger}$\par}
+\vspace{0.25em}
+{\small $^{1}$Independent Researcher, Anderson, Indiana, USA\par}
+{\small $^{2}$AI research, analysis, drafting, and reproducibility collaborator\par}
+{\small \texttt{ltconnelly314@gmail.com}\par}
+{\small \href{https://github.com/redxe/quantum-reuse-security}{github.com/redxe/quantum-reuse-security}\par}
+\vspace{0.35em}
+{\small Research Draft 0.6 --- August 2026\par}
+\end{center}
+
+\begin{abstract}
+\input{chapters/abstract}
+\end{abstract}
+
+\noindent\textbf{Keywords:} quantum compilation; qubit reuse; deferred measurement;
+information flow; quantum security; reduced-state verification; AI-assisted research.
+
+\vspace{0.45em}
+\noindent{\footnotesize$^{\dagger}$GPT-5.6 Thinking is an AI system credited
+transparently for substantial technical and editorial contributions. It cannot
+accept scholarly accountability; Vi Connelly reviewed the generated material
+and remains responsible for the claims, interpretations, and submission.}
+
+\vspace{0.7em}
+\begin{aibox}[AI-assisted research disclosure]
+The AI collaborator helped translate machine-readable circuit exports into
+LaTeX, derive and check reduced-state calculations, generate reproducible Python
+analysis, review the public repository and CI evidence, audit cross-references,
+and revise the manuscript. The original circuit
+observations, research direction, supplied data, and interpretive corrections
+came from the human author. GitHub Copilot also assisted with repository
+restructuring and CI setup. Numerical claims are tied to the included code,
+data, tests, and deterministic runs rather than accepted because an AI produced
+them.
+\end{aibox}
+
+\thispagestyle{plain}
+\newpage
+\tableofcontents
+\thispagestyle{plain}
+
+\input{chapters/preface}
+\input{chapters/introduction}
+\input{chapters/preliminaries}
+\input{chapters/case_study_i}
+\input{chapters/case_study_ii}
+\input{chapters/information_boundary}
+\input{chapters/equivalence_levels}
+\input{chapters/threat_model}
+\input{chapters/defenses}
+\input{chapters/simulation_results}
+\input{chapters/software_artifact}
+\input{chapters/research_agenda}
+\input{chapters/limitations}
+\input{chapters/conclusion}
+\input{chapters/acknowledgments}
+
+\appendix
+\input{chapters/appendix_gate_counts}
+\input{chapters/appendix_reproducibility}
+\input{chapters/appendix_questions}
+
+\printbibliography[heading=bibintoc,title={References}]
+
+\end{document}

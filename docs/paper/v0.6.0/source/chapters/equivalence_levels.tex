@@ -1,0 +1,60 @@
+\section{Four Levels of ``The Output Is the Same''}
+\label{sec:equivalence-levels}
+
+The exact Quirk export analysis makes a crucial methodological point:
+matching amplitude-derived bitstring distributions do not establish every
+notion of equivalence. The advanced circuit satisfies the weakest level below
+while failing the next one. We propose four levels.
+
+\begin{table}[ht]
+\centering
+\caption{Four levels of output equivalence. Each level is stronger than the
+one above it.}
+\label{tab:equivalence-levels}
+\begin{tabularx}{\textwidth}{@{}>{\bfseries}p{0.12\textwidth}p{0.25\textwidth}X@{}}
+\toprule
+Level & What is equal? & What can still differ?\\
+\midrule
+E0: Histogram & Selected measured bitstring probabilities & Relative phases,
+coherence, hidden correlations, behavior in other bases\\
+E1: Reduced state & Full density matrix of the legitimate output register &
+Attacker correlations compatible with mixed/classical outputs; hidden registers\\
+E2: Process & The legitimate channel on a specified input family, ideally with
+entangled references & Behavior outside the tested family; implementation-level
+side channels\\
+E3: Execution & Global authorized semantics across gate, mapping, pulse, and
+hardware layers & Only physical noise and explicitly accepted leakage\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{E0 is especially dangerous}
+
+For the attacked $\ket{+}$ example, the baseline and attacked states both yield
+$0$ and $1$ with probability $1/2$ in the computational basis. Yet the baseline
+has $\langle X\rangle=1$, while the attacked reduced state has
+$\langle X\rangle=0$. The same histogram hides complete loss of phase
+coherence.
+
+\subsection{E1 does not always prove secrecy}
+
+If the legitimate output is a mixed state encoding a classical distribution,
+an attacker may share correlations while leaving the victim marginal unchanged.
+No-broadcasting limits this for noncommuting state families
+\cite{barnum1996broadcasting}, but classical components remain readable without
+disturbance \cite{koashi2002operations}.
+
+\subsection{E2 should include reference systems}
+
+Testing only isolated inputs can miss failures on entangled inputs. The
+entangled-reference proof in \cref{cor:reference-preservation} is therefore not
+an ornamental detail; it is the appropriate standard for claiming that a
+subroutine implements a quantum channel correctly.
+
+\subsection{E3 is a cross-layer security goal}
+
+Even a verified gate-level circuit can be implemented by altered routing or
+pulse schedules. Recent work studies quantum Trojans, malicious compilation,
+and mismatches between gate-level declarations and pulse-level execution
+\cite{ashsaki2023primer,john2025trojan,xu2024pulseattacks}. A user who verifies
+only source code or a final histogram has not verified the full execution.

@@ -1,0 +1,56 @@
+
+\begin{figure}[tbp]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{quantikz}[row sep=0.34cm,column sep=0.30cm]
+\lstick{$q_0$} & \gate{H} & \meter{} & \ctrl{2} & \qw      & \slice[style={black,dashed},label style={black}]{Alice checkpoint} \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_1$} & \gate{H} & \meter{} & \qw      & \ctrl{1} & \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_2$} & \qw      & \qw      & \targ{}  & \gate{H} & \qw & \qw      & \qw      & \gate{H}  & \meter{} \\
+\lstick{$q_3$} & \qw      & \qw      & \qw      & \qw      & \qw & \gate{H} & \meter{} & \ctrl{-1} & \qw \\
+\lstick{$q_4$} & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \qw       & \qw
+\end{quantikz}
+\end{adjustbox}
+\caption{Corrected baseline circuit. One Alice measurement checkpoint remains
+after the initial Hadamards; the redundant consecutive checkpoint has been
+removed. The control on $q_1$ acts on a Hadamard target on $q_2$; later, the
+measured value on $q_3$ controls a second Hadamard on $q_2$. Display widgets and
+identity annotation blocks are omitted.}
+\label{fig:caseii-baseline-circuit}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{quantikz}[row sep=0.34cm,column sep=0.31cm]
+\lstick{$q_0$} & \gate{H} & \meter{} & \ctrl{2} & \qw      & \slice[style={black,dashed},label style={black}]{Alice} \qw & \qw      & \qw      & \qw      & \qw      & \qw      & \slice[style={black,dashed},label style={black}]{routing} \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_1$} & \gate{H} & \meter{} & \qw      & \ctrl{1} & \qw & \qw      & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_2$} & \qw      & \qw      & \targ{}  & \gate{H} & \qw & \gate{H} & \meter{} & \qw      & \qw      & \swap{2} & \qw & \qw      & \qw      & \gate{H}  & \meter{} \\
+\lstick{$q_3$} & \qw      & \qw      & \qw      & \qw      & \qw & \gate{H} & \gate{X} & \swap{1} & \qw      & \qw      & \qw & \gate{H} & \meter{} & \ctrl{-1} & \qw \\
+\lstick{$q_4$} & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \targX{} & \qw      & \targX{} & \qw & \qw      & \qw      & \qw       & \qw
+\end{quantikz}
+\end{adjustbox}
+\caption{Ordinary intercept--resend circuit. The routing is the ordered pair
+$\operatorname{SWAP}(q_3,q_4)$ followed by
+$\operatorname{SWAP}(q_2,q_4)$. The operations occupy separate columns, with a
+visual spacer between them, so the SWAP lines remain distinct. The $H$ on
+$q_2$ controlled by $q_3$ is drawn explicitly near the end of the circuit.}
+\label{fig:caseii-intercept-circuit}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{quantikz}[row sep=0.34cm,column sep=0.27cm]
+\lstick{$q_0$} & \gate{H} & \meter{} & \ctrl{3} & \qw      & \ctrl{2} & \qw      & \slice[style={black,dashed},label style={black}]{Alice} \qw & \qw      & \qw      & \qw      & \qw      & \qw      & \slice[style={black,dashed},label style={black}]{routing} \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_1$} & \gate{H} & \meter{} & \qw      & \ctrl{2} & \qw      & \ctrl{1} & \qw & \qw      & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_2$} & \qw      & \qw      & \qw      & \qw      & \targ{}  & \gate{H} & \qw & \gate{H} & \meter{} & \qw      & \qw      & \swap{2} & \qw & \qw      & \qw      & \gate{H}  & \meter{} \\
+\lstick{$q_3$} & \qw      & \qw      & \targ{}  & \gate{H} & \qw      & \qw      & \qw & \qw      & \qw      & \swap{1} & \qw      & \qw      & \qw & \gate{H} & \meter{} & \ctrl{-1} & \qw \\
+\lstick{$q_4$} & \qw      & \qw      & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \targX{} & \qw      & \targX{} & \qw & \qw      & \qw      & \qw       & \qw
+\end{quantikz}
+\end{adjustbox}
+\caption{Corrected advanced source-access circuit. Alice's measured selectors
+control preparation operations on $q_3$ and then a second preparation on $q_2$;
+the redundant repeated selector measurement has been removed. The ordered SWAP
+pair remains in separate columns.}
+\label{fig:caseii-advanced-circuit}
+\end{figure}

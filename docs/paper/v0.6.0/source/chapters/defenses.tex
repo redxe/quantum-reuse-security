@@ -1,0 +1,81 @@
+\section{Verification Contracts and Defenses}
+\label{sec:defenses}
+\label{sec:verification-contracts}
+
+\subsection{State-and-secrecy contracts}
+
+ReQWIRE and later uncomputation work show how useful it is to prove that
+ancillas return to an asserted state \cite{rand2019reqwire,venev2024uncomputation}.
+We propose extending the contract from a state assertion to a security
+assertion.
+
+A subroutine contract should contain:
+
+\begin{enumerate}
+  \item \textbf{Precondition}: initialization and allowed input subspace.
+  \item \textbf{Postcondition}: exact returned state of each released qubit.
+  \item \textbf{Separability}: released qubits factor from all live registers.
+  \item \textbf{Noninterference}: the reduced state of every attacker-visible
+  register is independent of protected variables.
+  \item \textbf{Liveness}: no authorized future operation uses the old logical
+  identity.
+\end{enumerate}
+
+An illustrative interface is:
+
+\begin{lstlisting}[style=python]
+@quantum_contract(
+    requires={"ancilla": "|0>", "destination": "|0>"},
+    ensures={
+        "source": "|0>",
+        "ancilla": "|0>",
+        "destination": "input_state(source)",
+        "separable": ["source", "ancilla"],
+    },
+    forbids_flow=[("secret", "released_or_hidden_qubits")],
+)
+def coherent_state_transfer(source, ancilla, destination):
+    ...
+\end{lstlisting}
+
+\subsection{Complementary-basis testing}
+
+A system that validates only computational-basis outputs is vulnerable to phase
+and coherence changes. Critical kernels should include randomized tests in
+complementary bases, entangled-reference tests, or process-level equivalence
+checking. For Clifford subcircuits, stabilizer methods can often verify these
+properties efficiently. More general circuits may require symbolic methods,
+decision diagrams, randomized identities, or bounded formal verification.
+
+\subsection{Cross-layer attestation}
+
+Security should bind together:
+
+\begin{itemize}
+  \item the user-level circuit;
+  \item the transpiled native-gate circuit;
+  \item logical-to-physical qubit mapping;
+  \item timing and scheduling;
+  \item pulse or analog control definitions;
+  \item measurement destinations and returned classical data.
+\end{itemize}
+
+Hashing only the high-level circuit is inadequate if lower layers can reorder
+qubits or alter pulse semantics. Pulse-level attacks demonstrate why semantic
+verification must extend below gate names \cite{xu2024pulseattacks}.
+
+\subsection{Trap and canary circuits}
+
+A provider or client can interleave secret trap circuits whose correct behavior
+is difficult for an adversary to distinguish from real workloads. Useful traps
+would include phase-sensitive tests, randomized Clifford identities, known
+entangled states, and circuits that expose unauthorized coupling to nominally
+idle qubits.
+
+\subsection{Isolation and least privilege}
+
+Source controls, basis choices, key-dependent classical branches, and calibration
+interfaces should be treated as secrets. Compiler passes should receive only the
+information they need. Multi-tenant devices should isolate qubit neighborhoods,
+control channels, and readout paths to reduce crosstalk and unauthorized
+observation.

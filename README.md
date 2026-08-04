@@ -171,6 +171,12 @@ This rule is intentionally labeled provisional until the original educational ci
 - [VALIDATION_FRAMEWORK.md](docs/VALIDATION_FRAMEWORK.md)
 - [INTERVIEW_GUIDE.md](docs/INTERVIEW_GUIDE.md)
 
+## Research Draft 0.6 Artifacts
+
+- PDF manuscript: [docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_6.pdf](docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_6.pdf)
+- Full source package: [docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Package_v0_6.zip](docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Package_v0_6.zip)
+- Standalone LaTeX entry file: [docs/paper/v0.6.0/source/main.tex](docs/paper/v0.6.0/source/main.tex)
+
 ## Citation
 
 Use repository metadata in [CITATION.cff](CITATION.cff).

@@ -1,0 +1,42 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+A qubit that returns to a known state is a gift to a compiler. It is also a
+moment at which the system decides who may use that physical resource next.
+Those two facts should not be separated.
+
+Coherent teleportation shows the constructive side. Deferred corrections factor
+the source and ancilla into $\ket{++}$, and two Hadamards return them to
+$\ket{00}$. The postcondition is exact, compositional, and suitable for reuse.
+
+The spy-detector analysis shows the adversarial side at two complementary
+levels. The complete randomized export restores the baseline computational-
+basis probabilities on the displayed register while lowering purity to $1/2$
+and leaving a distinguishable hidden branch. The fixed-input reconstruction then
+identifies that branch: after the ordered SWAP network, $q_4$ stores the spy's
+measurement result. It is a perfect record of Alice's value when the spy uses
+Alice's basis and is maximally mixed when the bases differ. At the same time,
+the reconstructed victim subsystem remains equal to its clean routed reference
+to floating-point precision.
+
+The general theorem explains the boundary. Orthogonal, classical information
+can be copied into hidden workspace without changing its source. Nonorthogonal
+pure states cannot reveal distinguishable information to an environment while
+remaining unchanged. Between those cases lies the engineering problem: users
+often verify only a subset of observables, compilers operate across abstraction
+layers, and real programs contain both quantum coherence and accessible
+classical structure.
+
+The public version-0.6.0 artifact makes the result reproducible through exact
+branch enumeration, numerical validation, tests across multiple Python
+versions, and deterministic output comparison in continuous integration. That
+software evidence narrows the remaining questions rather than erasing them. The
+next decisive task is to reconstruct the original detector's actual Boolean
+acceptance register, followed by independent Qiskit parity, formal
+information-flow contracts, and controlled compiler and hardware experiments.
+
+Secure quantum compilation should therefore treat ``clean'' as more than a
+single-qubit value. A released qubit should have a proven state, proven
+separability, explicit liveness, and an information-flow guarantee. The same
+analysis that makes scarce qubits reusable can help ensure that they are not
+reused against the computation they were meant to serve.

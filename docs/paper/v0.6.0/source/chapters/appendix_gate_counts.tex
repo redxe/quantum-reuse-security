@@ -1,0 +1,21 @@
+\section{Logical Gate Counts for the Teleportation Case}
+\label{app:gate-counts}
+
+\begin{table}[ht]
+\centering
+\caption{Logical resource comparison before hardware-specific transpilation.}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Method & $H$ & CNOT & CZ & Mid-circuit measurements & Feed-forward\\
+\midrule
+Canonical teleportation & 2 & 2 & 0 & 2 & Yes\\
+Deferred coherent corrections & 2 & 3 & 1 & 0 & No\\
+Deferred corrections plus cleanup & 4 & 3 & 1 & 0 & No\\
+Direct SWAP baseline & 0 & 3 & 0 & 0 & No\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The table is not a performance verdict. Native gates, topology, measurement
+latency, reset fidelity, and downstream state requirements determine the actual
+tradeoff.
