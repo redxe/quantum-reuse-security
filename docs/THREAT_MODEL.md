@@ -219,11 +219,22 @@ channel — none of which are modeled in the five-wire quantum circuit.
   $(\theta, \phi)$ preparation angles.
 - **Privilege at stake**: Bob's **read** privilege. The adversary's ancilla
   must not diminish Bob's ability to distinguish the intended input state.
-- **Status**: ✅ **Verified** — `tests/test_parametric_victim.py` establishes
-  preservation across a 60-point angle grid and a 200-sample random sweep
-  over $(\theta, \phi) \in [0, \pi) \times [0, 2\pi)$ for both Eve bases.
+- **Status**: ✅ **Numerically verified over tested pure-state parameterization** —
+  `tests/test_parametric_victim.py` establishes preservation across a 60-point
+  angle grid and a 200-sample random sweep over
+  $(\theta, \phi) \in [0, \pi) \times [0, 2\pi)$ for both Eve bases.
   Qiskit Statevector backend agrees at the same tolerance. Victim fidelity
   $> 1 - 10^{-10}$ on all 200 × 2 branch sets.
+
+  **Scientific scope note**: this is strong numerical evidence over arbitrary
+  pure-state preparations, not a formal channel theorem. Sampling over
+  $(\theta, \phi)$ does not prove preservation for every input or for states
+  entangled with an external reference. The formal follow-up would construct
+  a Choi-state (or entangled-reference) test to establish complete channel
+  equality rather than sampled-state agreement. Until that test is implemented,
+  the correct paper language is: *"Victim preservation was numerically verified
+  across the tested continuous pure-state parameterization and independently
+  reproduced with Qiskit Statevector simulation."*
 
 **For Issue #14 — malicious compiler model**
 
