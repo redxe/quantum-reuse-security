@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this repository, please cite it using this metadata."
 title: "Known-State Qubits as Both Resource and Risk"
-version: "0.6.0"
+version: "0.7.0"
 type: software
 authors:
   - family-names: "Connelly"

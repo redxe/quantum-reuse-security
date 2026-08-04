@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantum-reuse-security"
-version = "0.6.0"
+version = "0.7.0"
 description = "Deterministic branch-conditioned analysis for quantum qubit reuse security"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -25,7 +25,7 @@ dev = [
   "flake8>=6.0"
 ]
 qiskit = [
-  "qiskit>=1.0.0"
+  "qiskit>=1.0.0,<3"
 ]
 
 [project.urls]

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="quantum-reuse-security",
-    version="0.6.0",
+    version="0.7.0",
     author="Vi Connelly",
     description="Deterministic branch-conditioned analysis for quantum qubit reuse security",
     long_description=long_description,
@@ -38,7 +38,7 @@ setup(
             "flake8>=6.0",
         ],
         "qiskit": [
-            "qiskit>=0.25.0",
+            "qiskit>=1.0.0,<3",
         ],
     },
     entry_points={
