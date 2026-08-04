@@ -11,7 +11,7 @@ import pandas as pd
 
 from .circuits import H, apply_single, apply_swap, ry, rz
 from .measurements import BranchResult, enumerate_eve_branches, measurement_branch
-from .metrics import binary_entropy, bloch_vector, fidelity_with_pure, trace_distance
+from .metrics import binary_entropy, bloch_vector, trace_distance
 from .state_preparation import bb84_angles, prepare_advanced_state
 from .validation import (
     canonicalize_validation_summary,
@@ -261,8 +261,10 @@ def run_analysis(output_dir: Path) -> dict:
                                 "detector_acceptance": detector_acceptance_probability(
                                     value, basis, bob_basis
                                 ),
-                                "provisional_acceptance": provisional_acceptance_probability(
-                                    value, basis, bob_basis
+                                "provisional_acceptance": (
+                                    provisional_acceptance_probability(
+                                        value, basis, bob_basis
+                                    )
                                 ),
                                 "fifth_x": x,
                                 "fifth_y": y,
@@ -435,7 +437,8 @@ def run_analysis(output_dir: Path) -> dict:
         f"  Max Hermiticity error:    {validation_report['max_hermiticity_error']:.2e}"
     )
     print(
-        f"  Min eigenvalue:           {validation_report['max_eigenvalue_negativity']:.2e}"
+        "  Min eigenvalue:           "
+        f"{validation_report['max_eigenvalue_negativity']:.2e}"
     )
     print(
         f"  Max condition number:     {validation_report['max_condition_number']:.2e}"
@@ -473,7 +476,8 @@ def run_analysis(output_dir: Path) -> dict:
         f"  Spectral perturbation:    {error_bounds['spectral_perturbation_bound']:.2e}"
     )
     print(
-        f"  Trace distance change:    {error_bounds['trace_distance_perturbation_bound']:.2e}"
+        "  Trace distance change:    "
+        f"{error_bounds['trace_distance_perturbation_bound']:.2e}"
     )
     print(f"  Eigenvalue spread:        {error_bounds['eigenvalue_spread']:.2e}")
     print("=" * 70 + "\n")
@@ -559,6 +563,14 @@ def run_analysis(output_dir: Path) -> dict:
 
     max_victim_td = float(branch_df["victim_trace_distance"].max())
     min_victim_fid = float(branch_df["victim_fidelity"].min())
+    value_mi_forgotten = information[
+        "value_mutual_information_if_e_is_uniform_and_forgotten_bits"
+    ]
+    basis_mi_known_v = information["basis_mutual_information_given_v_and_fixed_e_bits"]
+    eig_min = validation_report["max_eigenvalue_negativity"]
+    eps = float(np.finfo(float).eps)
+    trace_error_eps_ratio = validation_report["max_trace_error"] / eps
+    max_td_eps_ratio = max_victim_td / eps
     min_accept = float(
         branch_df.loc[
             branch_df["bob_basis_c"] == branch_df["b"], "detector_acceptance"
@@ -617,12 +629,12 @@ After averaging over Eve's outcome:
 
 - Matching Eve/Alice basis: **1 bit** about `v`.
 - Mismatched basis: **0 bits** about `v`.
-- Uniform Eve basis, forgotten: **{information["value_mutual_information_if_e_is_uniform_and_forgotten_bits"]:.6f} bits**
+- Uniform Eve basis, forgotten: **{value_mi_forgotten:.6f} bits**
   of mutual information about `v`.
 - Uniform Eve basis retained as side information: **0.5 bits** about `v` per
   attacked transmission.
 - Basis information when `v` is known and `e` is fixed:
-  **{information["basis_mutual_information_given_v_and_fixed_e_bits"]:.6f} bits**.
+    **{basis_mi_known_v:.6f} bits**.
 - Holevo upper bound for the full pair `(v,b)` at fixed `e`: **0.5 bits**.
 
 ## Victim-side check
@@ -631,8 +643,10 @@ Across every fixed `(v,b,e,r_E)` branch:
 
 - minimum victim-subsystem fidelity: **{min_victim_fid:.12f}**
 - maximum victim-subsystem trace distance: **{max_victim_td:.3e}**
-- minimum matched-basis acceptance probability under exact detector rule: **{min_accept:.12f}**
-- formula-vs-trace acceptance max absolute error: **{detector_consistency_max_abs_error:.3e}**
+- minimum matched-basis acceptance probability under exact detector rule:
+    **{min_accept:.12f}**
+- formula-vs-trace acceptance max absolute error:
+    **{detector_consistency_max_abs_error:.3e}**
 
 Under this fixed-branch abstraction, Bob receives the independently prepared
 duplicate exactly. Eve's measurement result is moved to `q4`, while the
@@ -646,18 +660,20 @@ All {validation_report['total_branches']} computed density matrices passed valid
 **Error Metrics:**
 - Maximum trace error: **{validation_report['max_trace_error']:.2e}** (target: < 1e-10)
 - Maximum Hermiticity error: **{validation_report['max_hermiticity_error']:.2e}**
-- Minimum eigenvalue: **{validation_report['max_eigenvalue_negativity']:.2e}** (positive semi-definite: ✓)
+- Minimum eigenvalue: **{eig_min:.2e}** (positive semi-definite: ✓)
 - Maximum condition number: **{validation_report['max_condition_number']:.2e}**
 
 **Numerical Context:**
-- Machine epsilon (float64): {float(np.finfo(float).eps):.2e}
-- Error-to-epsilon ratio: {validation_report['max_trace_error']/float(np.finfo(float).eps):.2e}x
+- Machine epsilon (float64): {eps:.2e}
+- Error-to-epsilon ratio: {trace_error_eps_ratio:.2e}x
 - Computation fully valid: **{validation_report['all_valid']}**
 
-The maximum trace distance of **{max_victim_td:.3e}** is {max_victim_td/float(np.finfo(float).eps):.0f}x machine epsilon,
-indicating it reflects numerical noise rather than meaningful information leakage on the victim
-subsystem. This validates the claim that Bob receives the independently prepared duplicate
-exactly—the victim-subsystem state is mathematically invariant under all eve_basis and eve_result
+The maximum trace distance of **{max_victim_td:.3e}** is
+{max_td_eps_ratio:.0f}x machine epsilon, indicating it reflects numerical noise
+rather than meaningful information leakage on the victim subsystem. This
+validates the claim that Bob receives the independently prepared duplicate
+exactly—the victim-subsystem state is mathematically invariant under all
+eve_basis and eve_result
 conditions within floating-point precision.
 
 ## Claim boundary

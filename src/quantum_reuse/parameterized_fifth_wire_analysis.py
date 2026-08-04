@@ -24,6 +24,7 @@ from .analysis import (
     run_analysis,
     validate_quantum_computation,
 )
+from .circuits import apply_swap, ry, rz
 
 __all__ = [
     "average_fifth_state",
@@ -36,6 +37,9 @@ __all__ = [
     "provisional_acceptance_probability",
     "run_analysis",
     "validate_quantum_computation",
+    "apply_swap",
+    "ry",
+    "rz",
     "qiskit_parameterized_skeleton",
     "qiskit_parameterized_circuit",
     "main",
