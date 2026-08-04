@@ -1,0 +1,122 @@
+\section{Case Study I: Coherent Teleportation Cleans Two Qubits}
+\label{sec:case-study-i}
+
+Canonical quantum teleportation transfers an unknown state using entanglement,
+two measurements, two classical bits, and conditional Pauli corrections
+\cite{bennett1993teleporting,nielsen2010quantum}. The deferred-measurement
+principle allows those measurements to be postponed and the classically
+controlled corrections to be represented coherently
+\cite{gurevich2022deferred}.
+
+\subsection{Circuit}
+
+Let $S$ be the source, $A$ an ancilla, and $B$ the destination. The circuit in
+\cref{fig:teleport-cleanup} prepares a Bell pair on $AB$, performs the usual
+Bell-basis transform on $SA$, replaces feed-forward by controlled $X$ and $Z$,
+and finally maps $\ket{++}_{SA}$ to $\ket{00}_{SA}$.
+
+\begin{figure}[ht]
+\centering
+\begin{quantikz}[row sep=0.35cm,column sep=0.35cm]
+\lstick{$S:\ket{\psi}$} & \qw      & \qw      & \ctrl{1} & \gate{H} & \qw      & \ctrl{2} & \gate{H} & \rstick{$\ket{0}$}\\
+\lstick{$A:\ket{0}$}    & \gate{H} & \ctrl{1} & \targ{}  & \qw      & \ctrl{1} & \qw      & \gate{H} & \rstick{$\ket{0}$}\\
+\lstick{$B:\ket{0}$}    & \qw      & \targ{}  & \qw      & \qw      & \targ{}  & \gate{Z} & \qw      & \rstick{$\ket{\psi}$}
+\end{quantikz}
+\caption{Coherent teleportation with deterministic cleanup. The controlled
+$X$ and controlled $Z$ replace measurement-conditioned corrections; the final
+Hadamards return the first two qubits to $\ket{00}$.}
+\label{fig:teleport-cleanup}
+\end{figure}
+
+\subsection{Derivation}
+
+Let
+\begin{equation}
+  \ket{\psi}=\alpha\ket{0}+\beta\ket{1},
+  \qquad |\alpha|^2+|\beta|^2=1.
+\end{equation}
+After Bell-pair preparation and the Bell-basis transform, the familiar
+teleportation identity is
+\begin{equation}
+\begin{aligned}
+  \ket{\Psi_3}=\frac{1}{2}\big(&
+  \ket{00}_{SA}\ket{\psi}_B
+  +\ket{01}_{SA}X\ket{\psi}_B\\
+  &+\ket{10}_{SA}Z\ket{\psi}_B
+  +\ket{11}_{SA}XZ\ket{\psi}_B\big).
+  \label{eq:teleport-branches}
+\end{aligned}
+\end{equation}
+The coherent $\cnot_{A\rightarrow B}$ removes the $X$ correction in the
+branches with $A=1$:
+\begin{equation}
+  \ket{\Psi_4}=\frac{1}{2}
+  (\ket{00}\ket{\psi}+\ket{01}\ket{\psi}
+  +\ket{10}Z\ket{\psi}+\ket{11}Z\ket{\psi}).
+\end{equation}
+The coherent $\cz_{S,B}$ removes the remaining $Z$ correction when $S=1$:
+\begin{equation}
+\begin{aligned}
+  \ket{\Psi_5}
+  &=\frac{1}{2}(\ket{00}+\ket{01}+\ket{10}+\ket{11})_{SA}
+    \otimes\ket{\psi}_B\\
+  &=\ket{+}_S\ket{+}_A\ket{\psi}_B.
+  \label{eq:plus-plus-psi}
+\end{aligned}
+\end{equation}
+Finally, $H\ket{+}=\ket{0}$.
+
+\begin{theorem}[Coherent teleportation cleanup]
+For every single-qubit state $\ket{\psi}$,
+\begin{equation}
+  U_{\mathrm{clean}}\ket{\psi}_{S}\ket{0}_{A}\ket{0}_{B}
+  =\ket{0}_{S}\ket{0}_{A}\ket{\psi}_{B}.
+  \label{eq:cleanup-theorem}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Equation~\eqref{eq:plus-plus-psi} factors the destination from the source and
+ancilla. Applying $H_S H_A$ maps $\ket{++}_{SA}$ to $\ket{00}_{SA}$.
+\end{proof}
+
+\begin{corollary}[Entangled-reference preservation]\label{cor:reference-preservation}
+Let $R$ be an arbitrary reference system and
+$\ket{\Omega}_{RS}=\ket{r_0}_R\ket{0}_S+\ket{r_1}_R\ket{1}_S$.
+Then
+\begin{equation}
+  (\id_R\otimes U_{\mathrm{clean}})
+  \ket{\Omega}_{RS}\ket{00}_{AB}
+  =\ket{00}_{SA}
+   (\ket{r_0}_R\ket{0}_B+\ket{r_1}_R\ket{1}_B).
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Apply \cref{eq:cleanup-theorem} to the $\ket{0}_S$ and $\ket{1}_S$ components
+and use linearity.
+\end{proof}
+
+\subsection{Interpretation and resource tradeoff}
+
+The result is a state-transfer identity on the initialized subspace
+$\ket{\psi00}$. It is not a replacement for geographically distributed
+teleportation: the coherent corrections require quantum interactions with the
+destination. On a single processor, it must also be compared with a direct
+SWAP, which may use fewer entangling operations.
+
+Its value here is conceptual. The circuit has a formally provable postcondition:
+two qubits are exactly known and separable. This is precisely the kind of fact a
+resource-aware compiler could use. Existing qubit-reuse work commonly measures,
+resets, and reallocates qubits \cite{decross2023reuse}. The circuit demonstrates
+a coherent alternative: sometimes the program itself already uncomputes the
+workspace into a reusable state.
+
+\begin{claimbox}[Software cross-check]
+The public artifact keeps a coherent cleanup implementation and a direct
+SWAP-only state-transfer reference. Regression tests verify the same routed
+output on the initialized subspace $\ket{\psi00}$ and verify preservation of an
+entangled reference. This comparison is deliberately restricted: agreement on
+$\ket{\psi00}$ does not imply that the complete unitaries are globally equal on
+arbitrary three-qubit inputs.
+\end{claimbox}

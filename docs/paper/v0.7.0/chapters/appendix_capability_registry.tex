@@ -1,0 +1,448 @@
+\section{Capability-Matrix Cell Registry}
+\label{app:capability-registry}
+
+This appendix is the evidence directory for \cref{tab:capability-matrix}. Every
+matrix code links here, and every record links back to the overview. The fields
+are deliberately consistent: mechanism, what is touched, what may remain
+untouched, and boundary or alternative route. Status and symbol meanings are
+defined in \hyperlink{matrix:legend}{the matrix legend}.
+
+\begin{multicols}{2}
+\subsection*{A -- Channel only}
+\Needspace{10\baselineskip}
+\hypertarget{cell:A1}{}
+\begin{matrixrecord}[A1 -- Channel only / orthogonal or classical value\hfill\riskbadge{RiskGreen}{F}\,\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Measure or coherently copy a value encoded in a known orthogonal basis.
+
+\textbf{Touched.} The addressed basis observable and any target workspace; a superposition may become entangled and lose local coherence.
+
+\textbf{May remain untouched.} An input already in the copied eigenbasis can remain unchanged as a local state.
+
+\textbf{Boundary / alternative.} This does not copy an arbitrary unknown state. Basis randomization, authentication, and broader state checks mitigate the exposure. See \cite{nielsen2010quantum,barnum1996broadcasting}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:A2}{}
+\begin{matrixrecord}[A2 -- Channel only / measurement result or syndrome\hfill\riskbadge{RiskAmber}{P}\,\workaround\strongaccess\mitigation]{RiskAmberSoft}
+\textbf{Mechanism.} Read a result only when the classical result, syndrome, or tagged carrier is emitted onto the accessible channel.
+
+\textbf{Touched.} The exposed classical carrier or the physical side channel that transports it.
+
+\textbf{May remain untouched.} The underlying quantum data path may already have completed before the emitted record is copied.
+
+\textbf{Boundary / alternative.} A result that never leaves a trusted boundary is not available at this tier. Side-channel access or backend compromise changes the row. See \cite{jiang2024sidechannel,ashsaki2023primer}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:A3}{}
+\begin{matrixrecord}[A3 -- Channel only / known preparation label\hfill\riskbadge{RiskAmber}{P}\,\workaround]{RiskAmberSoft}
+\textbf{Mechanism.} Discriminate among a known restricted ensemble using minimum-error or unambiguous measurements.
+
+\textbf{Touched.} The intercepted system is measured or coupled to a probe; disturbance or an inconclusive branch is generally introduced.
+
+\textbf{May remain untouched.} A conclusive unambiguous answer is error-free, but only on successful runs.
+
+\textbf{Boundary / alternative.} Nonorthogonal labels cannot be identified perfectly and deterministically from one copy. Linearly independent states admit unambiguous discrimination with nonzero inconclusive probability \cite{chefles1998unambiguous,nielsen2010quantum}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:A4}{}
+\begin{matrixrecord}[A4 -- Channel only / arbitrary unknown nonorthogonal state\hfill\riskbadge{RiskRed}{N}\,\nogo\workaround]{RiskRedSoft}
+\textbf{Mechanism.} Attempt to extract a complete unknown state while leaving the original exactly available to the victim.
+
+\textbf{Touched.} Any informative interaction must correlate the probe with the system.
+
+\textbf{May remain untouched.} Perfect preservation can be retained only when the probe obtains no distinguishing information about nonorthogonal alternatives.
+
+\textbf{Boundary / alternative.} Universal exact cloning or broadcasting is prohibited. Nearby objectives include approximate estimation, accepted disturbance, relocation, multiple copies, or heralded success for restricted linearly independent ensembles \cite{wootters1982cloning,barnum1996broadcasting,duan1998probabilistic}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:A5}{}
+\begin{matrixrecord}[A5 -- Channel only / metadata or ciphertext\hfill\riskbadge{RiskGreen}{F}\,\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Copy classical metadata, routing labels, ciphertext, timing information, or other exposed orthogonal records.
+
+\textbf{Touched.} The exposed record or transmission metadata.
+
+\textbf{May remain untouched.} The encrypted payload can remain cryptographically opaque if the underlying encryption and keys remain secure.
+
+\textbf{Boundary / alternative.} Copying ciphertext is not equivalent to learning plaintext. Traffic minimization, padding, access control, and authenticated metadata reduce exposure.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:A6}{}
+\begin{matrixrecord}[A6 -- Channel only / delayed-use correlation\hfill\riskbadge{RiskAmber}{P}\,\workaround]{RiskAmberSoft}
+\textbf{Mechanism.} Store a noisy or basis-dependent observation and interpret it after later protocol announcements.
+
+\textbf{Touched.} The intercepted carrier is measured or probed, and some branches are disturbed or inconclusive.
+
+\textbf{May remain untouched.} Unattacked or uninformative branches may remain operationally acceptable.
+
+\textbf{Boundary / alternative.} Later basis information can increase the value of an earlier record without retroactively removing the original disturbance. BB84 sifting is the canonical context \cite{bennett1984bb84}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\subsection*{B -- Runtime or routing control}
+\Needspace{10\baselineskip}
+\hypertarget{cell:B1}{}
+\begin{matrixrecord}[B1 -- Runtime or routing / orthogonal or classical value\hfill\riskbadge{RiskGreen}{F}\,\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Use a controlled gate, SWAP network, or reclaimed ancilla to latch an orthogonal intermediate.
+
+\textbf{Touched.} The targeted observable, hidden workspace, and routing schedule.
+
+\textbf{May remain untouched.} The source eigenstate and victim-visible value may remain unchanged when the copied information is genuinely orthogonal.
+
+\textbf{Boundary / alternative.} For superposed inputs, CNOT redistributes coherence into correlations rather than creating an independent copy. Liveness attestation and ancilla noninterference checks are appropriate mitigations \cite{nielsen2010quantum,decross2023reuse}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:B2}{}
+\begin{matrixrecord}[B2 -- Runtime or routing / result or syndrome\hfill\riskbadge{RiskGreen}{F}\,\ourresult\candidatepriority\strongaccess\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Route a measured branch or syndrome into reclaimed workspace while a replacement branch continues to the victim.
+
+\textbf{Touched.} The physical-to-logical mapping, original intercepted branch, and retained wire.
+
+\textbf{May remain untouched.} In the reconstructed fixed-input model, the routed victim subsystem remains equal to its clean reference to numerical precision.
+
+\textbf{Boundary / alternative.} This project demonstrates fifth-wire retention under combined source and routing access. Exact original-detector bypass and literature priority remain open; mapping attestation and full-register validation are mitigations.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:B3}{}
+\begin{matrixrecord}[B3 -- Runtime or routing / preparation label\hfill\riskbadge{RiskAmber}{P}\,\strongaccess]{RiskAmberSoft}
+\textbf{Mechanism.} Route a preparation label when it already exists as an orthogonal selector or classical control register.
+
+\textbf{Touched.} The selector register, control path, and hidden destination.
+
+\textbf{May remain untouched.} The prepared signal may remain unchanged if the label is copied before or independently of state preparation.
+
+\textbf{Boundary / alternative.} Routing access alone does not reveal a label that is encoded only in an unknown nonorthogonal signal. Access to a source-control register changes the model to D3.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:B4}{}
+\begin{matrixrecord}[B4 -- Runtime or routing / arbitrary unknown state\hfill\riskbadge{RiskAmber}{P}\,\workaround\nogo]{RiskAmberSoft}
+\textbf{Mechanism.} Move the entire state by SWAP, teleportation, or equivalent unitary routing.
+
+\textbf{Touched.} The original physical carrier no longer retains the state; entanglement and ownership move with the logical state.
+
+\textbf{May remain untouched.} The logical state and its reference correlations can be preserved at the new destination.
+
+\textbf{Boundary / alternative.} Exact movement is not exact copying. Retaining a second perfect victim copy remains blocked by no-cloning \cite{bennett1993teleporting,wootters1982cloning}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:B5}{}
+\begin{matrixrecord}[B5 -- Runtime or routing / metadata or ciphertext\hfill\riskbadge{RiskGreen}{F}\,\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Route classical flags, tags, ciphertext blocks, scheduler data, or control records into undocumented workspace or logs.
+
+\textbf{Touched.} The corresponding classical or orthogonal record and the runtime data path.
+
+\textbf{May remain untouched.} The principal quantum state may remain untouched if the leaked object is separate classical metadata.
+
+\textbf{Boundary / alternative.} Authenticated scheduling, minimized telemetry, explicit data-flow policy, and audit logs are direct mitigations.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:B6}{}
+\begin{matrixrecord}[B6 -- Runtime or routing / delayed-use correlation\hfill\riskbadge{RiskGreen}{F}\,\ourresult\candidatepriority\strongaccess]{RiskGreenSoft}
+\textbf{Mechanism.} Retain a measurement branch whose interpretation improves when basis or protocol information is learned later.
+
+\textbf{Touched.} The retained branch, hidden workspace, and later classical interpretation step.
+
+\textbf{May remain untouched.} The completed victim execution may remain unchanged in the reconstructed model.
+
+\textbf{Boundary / alternative.} The fifth-wire experiment demonstrates this basis-conditioned value pattern under combined access. The broader compiler-level covert-channel claim remains a research hypothesis.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\columnbreak
+\subsection*{C -- Compiler or transformation control}
+\Needspace{10\baselineskip}
+\hypertarget{cell:C1}{}
+\begin{matrixrecord}[C1 -- Compiler or transformation / orthogonal or classical value\hfill\riskbadge{RiskGreen}{F}\,\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Insert a reversible latch from a secret-dependent orthogonal value into hidden ancilla workspace.
+
+\textbf{Touched.} The compiled circuit, targeted value path, and inserted workspace operations.
+
+\textbf{May remain untouched.} The source value and selected victim outputs may remain unchanged.
+
+\textbf{Boundary / alternative.} The operation is ordinary reversible logic used without authorization. Verified compilation, circuit-diff attestation, and information-flow typing are natural mitigations \cite{rand2019reqwire,john2025trojan}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:C2}{}
+\begin{matrixrecord}[C2 -- Compiler or transformation / result or syndrome\hfill\riskbadge{RiskBlue}{H}\,\candidatepriority\mitigation]{RiskBlueSoft}
+\textbf{Mechanism.} Insert covert measurement, branch routing, or result-logging operations below the user's inspected circuit.
+
+\textbf{Touched.} The transformed circuit, measurement schedule, and hidden output path.
+
+\textbf{May remain untouched.} Selected functional outputs might remain inside tolerance if the inserted operation targets commuting or already measured information.
+
+\textbf{Boundary / alternative.} Quantum Trojan and pulse-level attack research establishes the threat surface; a retained-result compiler exploit of the form proposed here still requires a controlled prototype \cite{john2025trojan,xu2024pulseattacks}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:C3}{}
+\begin{matrixrecord}[C3 -- Compiler or transformation / preparation label\hfill\riskbadge{RiskGreen}{F}\,\strongaccess\workaround]{RiskGreenSoft}
+\textbf{Mechanism.} Use visible symbolic source parameters to synthesize a second branch during compilation.
+
+\textbf{Touched.} The parameter flow, generated circuit, and replacement workspace.
+
+\textbf{May remain untouched.} The victim's intended prepared state may remain exact.
+
+\textbf{Boundary / alternative.} This is duplicate preparation from a classical description, not cloning. It requires that source parameters cross the compiler trust boundary.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:C4}{}
+\begin{matrixrecord}[C4 -- Compiler or transformation / arbitrary unknown state\hfill\riskbadge{RiskRed}{N}\,\nogo\workaround]{RiskRedSoft}
+\textbf{Mechanism.} Attempt to insert a universal exact clone of a runtime state unknown to the compiler.
+
+\textbf{Touched.} Any informative probe or approximate clone touches the state or its correlations.
+
+\textbf{May remain untouched.} A redirected state can be preserved at one destination, but not duplicated perfectly for both attacker and victim.
+
+\textbf{Boundary / alternative.} Alternatives include redirection, weak or approximate probing, ensemble-specific discrimination, and probabilistic cloning for a restricted linearly independent set \cite{wootters1982cloning,duan1998probabilistic}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:C5}{}
+\begin{matrixrecord}[C5 -- Compiler or transformation / metadata or ciphertext\hfill\riskbadge{RiskGreen}{F}\,\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Leak circuit width, depth, gate structure, placement, timing, calibration choices, or classical compilation artifacts.
+
+\textbf{Touched.} The compilation pipeline and metadata surfaces.
+
+\textbf{May remain untouched.} The logical output may remain correct even while workload information leaks.
+
+\textbf{Boundary / alternative.} Reproducible builds, least-privilege compilation, metadata minimization, and provider transparency reduce the risk \cite{ashsaki2023primer,xu2024pulseattacks}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:C6}{}
+\begin{matrixrecord}[C6 -- Compiler or transformation / delayed-use correlation\hfill\riskbadge{RiskBlue}{H}\,\candidatepriority\strongaccess]{RiskBlueSoft}
+\textbf{Mechanism.} Preserve a latent quantum or classical correlation until later protocol information gives it operational meaning.
+
+\textbf{Touched.} The transformed circuit, retained workspace, and later side-information channel.
+
+\textbf{May remain untouched.} The victim-visible outputs might remain inside a restricted acceptance policy.
+
+\textbf{Boundary / alternative.} This project proposes the mechanism as a broader extension of the demonstrated fifth-wire pattern. Formal noninterference and a compiler prototype remain necessary.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\subsection*{D -- Source or preparation control}
+\Needspace{10\baselineskip}
+\hypertarget{cell:D1}{}
+\begin{matrixrecord}[D1 -- Source or preparation / orthogonal or classical value\hfill\riskbadge{RiskGreen}{F}\,]{RiskGreenSoft}
+\textbf{Mechanism.} Read or copy the classical value already used by the source to select a preparation.
+
+\textbf{Touched.} The source-control data and any copied destination.
+
+\textbf{May remain untouched.} The prepared quantum state need not be touched at all.
+
+\textbf{Boundary / alternative.} At this access tier, quantum extraction is unnecessary. The security problem is classical access control and provenance.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:D2}{}
+\begin{matrixrecord}[D2 -- Source or preparation / measurement result or syndrome\hfill\riskbadge{RiskAmber}{P}\,\workaround]{RiskAmberSoft}
+\textbf{Mechanism.} Prepare eigenstates, tags, or correlations that make selected future outcomes predictable or biased.
+
+\textbf{Touched.} The prepared state or source device is altered relative to the honest specification.
+
+\textbf{May remain untouched.} Some victim-visible statistics can remain plausible within tolerance.
+
+\textbf{Boundary / alternative.} A genuinely random future measurement result is not known in advance. The source can instead influence the distribution or embed a correlated tag; source characterization and loss-tolerant protocols address related risks \cite{tamaki2014loss,jiang2024sidechannel}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:D3}{}
+\begin{matrixrecord}[D3 -- Source or preparation / known preparation label\hfill\riskbadge{RiskGreen}{F}\,\ourresult\candidatepriority\workaround\strongaccess]{RiskGreenSoft}
+\textbf{Mechanism.} Use the same known controls $(v,b)$ to prepare an additional state, send a clean branch to Bob, and retain or disturb another branch.
+
+\textbf{Touched.} The preparation-control path, original branch, replacement branch, and subsequent routing.
+
+\textbf{May remain untouched.} The clean victim branch can remain exact in the reconstructed fixed-input model.
+
+\textbf{Boundary / alternative.} The mechanism avoids unknown-state cloning by changing the access assumption. This project demonstrates the preparation-and-routing chain; broad novelty and exact detector bypass remain unclaimed.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:D4}{}
+\begin{matrixrecord}[D4 -- Source or preparation / arbitrary unknown state\hfill\riskbadge{RiskRed}{N}\,\nogo\workaround]{RiskRedSoft}
+\textbf{Mechanism.} Attempt to duplicate a state whose classical description is unknown even to the source component under analysis.
+
+\textbf{Touched.} An informative interaction would alter or correlate the state.
+
+\textbf{May remain untouched.} Perfect preservation implies no distinguishable attacker record for nonorthogonal alternatives.
+
+\textbf{Boundary / alternative.} No-cloning still applies. If the classical description is actually available, the correct classification is D3 rather than D4 \cite{wootters1982cloning,koashi2002operations}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:D5}{}
+\begin{matrixrecord}[D5 -- Source or preparation / metadata or ciphertext\hfill\riskbadge{RiskGreen}{F}\,\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Copy basis choices, identifiers, protocol parameters, ciphertext, or source calibration metadata.
+
+\textbf{Touched.} The source metadata path and copied record.
+
+\textbf{May remain untouched.} The signal state can remain untouched if the copied object is already classical.
+
+\textbf{Boundary / alternative.} Strict separation of secret controls, authenticated source firmware, and metadata minimization are direct mitigations.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:D6}{}
+\begin{matrixrecord}[D6 -- Source or preparation / delayed-use correlation\hfill\riskbadge{RiskGreen}{F}\,\ourresult\strongaccess]{RiskGreenSoft}
+\textbf{Mechanism.} Retain a preparation label or associated measurement record until a basis or protocol announcement.
+
+\textbf{Touched.} The copied label or retained record and later interpretation step.
+
+\textbf{May remain untouched.} The victim's completed branch may remain unchanged.
+
+\textbf{Boundary / alternative.} In the project model, basis information determines whether the fifth-wire record is a perfect value record or maximally mixed. This is demonstrated within the reconstructed source-access abstraction.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\columnbreak
+\subsection*{E -- Hardware or backend access}
+\Needspace{10\baselineskip}
+\hypertarget{cell:E1}{}
+\begin{matrixrecord}[E1 -- Hardware or backend / orthogonal or classical value\hfill\riskbadge{RiskAmber}{P}\,\mitigation]{RiskAmberSoft}
+\textbf{Mechanism.} Perform a quantum nondemolition-style measurement of a selected observable.
+
+\textbf{Touched.} The meter, measured observable, and generally a conjugate degree of freedom.
+
+\textbf{May remain untouched.} The measured eigenvalue can remain predictable for a subsequent measurement.
+
+\textbf{Boundary / alternative.} QND does not mean preservation of the complete arbitrary state. Hardware isolation, calibration checks, and multi-observable validation are relevant mitigations \cite{unnikrishnan2018qnd}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:E2}{}
+\begin{matrixrecord}[E2 -- Hardware or backend / measurement result or syndrome\hfill\riskbadge{RiskGreen}{F}\,\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Log, duplicate, or leak classical outcomes and error syndromes already handled by measurement electronics or control software.
+
+\textbf{Touched.} The backend's classical result path, telemetry, and storage.
+
+\textbf{May remain untouched.} The quantum measurement has already occurred; the victim may still receive the expected classical result.
+
+\textbf{Boundary / alternative.} Least-privilege result handling, encrypted telemetry, audit trails, and trusted execution boundaries are straightforward mitigations \cite{ashsaki2023primer}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:E3}{}
+\begin{matrixrecord}[E3 -- Hardware or backend / known preparation label\hfill\riskbadge{RiskAmber}{P}\,\mitigation]{RiskAmberSoft}
+\textbf{Mechanism.} Infer source settings through Trojan-horse probes, pulse response, calibration leakage, or other implementation side channels.
+
+\textbf{Touched.} The physical source or encoder is probed, and some observable implementation behavior is exposed.
+
+\textbf{May remain untouched.} The logical signal may appear correct if the probe remains below operational thresholds.
+
+\textbf{Boundary / alternative.} Success is device-specific and imperfect rather than guaranteed. Monitoring, isolation, filtering, and implementation-aware proofs are established defenses \cite{jiang2024sidechannel,ashsaki2023primer}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:E4}{}
+\begin{matrixrecord}[E4 -- Hardware or backend / arbitrary unknown state\hfill\riskbadge{RiskRed}{N}\,\nogo\workaround]{RiskRedSoft}
+\textbf{Mechanism.} Extract a complete arbitrary unknown state while leaving it perfectly available to the victim.
+
+\textbf{Touched.} Any informative physical interaction couples the state to an environment or measurement apparatus.
+
+\textbf{May remain untouched.} Perfect preservation is compatible only with an attacker record independent of the nonorthogonal alternative.
+
+\textbf{Boundary / alternative.} Hardware proximity does not repeal no-cloning. Tomography consumes many identically prepared copies; approximate or weak measurements trade information against disturbance \cite{wootters1982cloning,fuchs1996information}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:E5}{}
+\begin{matrixrecord}[E5 -- Hardware or backend / metadata or ciphertext\hfill\riskbadge{RiskGreen}{F}\,\mitigation]{RiskGreenSoft}
+\textbf{Mechanism.} Exploit timing, pulse shapes, calibration behavior, queue structure, crosstalk, or control-plane metadata.
+
+\textbf{Touched.} The physical implementation and associated telemetry.
+
+\textbf{May remain untouched.} The logical result may remain correct even when implementation metadata leaks.
+
+\textbf{Boundary / alternative.} Pulse verification, tenant isolation, randomized compilation, traffic shaping, and telemetry policy can reduce the exposure \cite{xu2024pulseattacks,ashsaki2023primer}.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\Needspace{10\baselineskip}
+\hypertarget{cell:E6}{}
+\begin{matrixrecord}[E6 -- Hardware or backend / delayed-use correlation\hfill\riskbadge{RiskAmber}{P}\,\mitigation]{RiskAmberSoft}
+\textbf{Mechanism.} Store classical traces for later fusion or attempt to maintain a hidden quantum correlation across reuse and reset events.
+
+\textbf{Touched.} Classical logs are straightforward to retain; quantum storage touches coherence, reset, and noise behavior.
+
+\textbf{May remain untouched.} A completed victim result can remain correct while backend traces persist.
+
+\textbf{Boundary / alternative.} Classical delayed fusion is feasible. Long-lived covert quantum correlations are constrained by decoherence, reset, calibration drift, and observability; they require hardware experiments before stronger claims.
+
+\hfill\matrixback
+\end{matrixrecord}
+
+\end{multicols}
+
+\begin{cautionbox}[How to use this registry]
+The registry is a scope-control device, not a catalog of exploits. A feasible
+cell states that the mechanism is compatible with the listed access model; it
+does not imply that every implementation is vulnerable. A no-go cell blocks the
+exact objective under its assumptions, not every weaker or differently scoped
+objective. Cells marked \candidatepriority\ require a dedicated literature
+review before the manuscript describes them as novel beyond this project's own
+contribution record.
+\end{cautionbox}

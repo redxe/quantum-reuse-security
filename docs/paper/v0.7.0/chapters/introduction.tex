@@ -1,0 +1,104 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Quantum software has a space problem. Useful algorithms need workspace qubits,
+but present and near-term machines offer far fewer high-quality qubits than a
+classical programmer would treat as ordinary memory. This pressure has produced
+an important body of work on uncomputation, verified ancilla disposal, and
+qubit-reuse compilation \cite{rand2019reqwire,decross2023reuse,venev2024uncomputation}.
+The central optimization question is straightforward:
+
+\begin{quote}
+When has a qubit finished its job, and how can we prove that it is safe to use
+again?
+\end{quote}
+
+Security introduces a second question:
+
+\begin{quote}
+If a qubit is available again, who is allowed to use it, what may they couple it
+to, and what observations would reveal unauthorized use?
+\end{quote}
+
+This paper develops a bridge between those questions. The bridge begins with a
+small circuit observation: in coherent teleportation, two qubits end in a known
+$\ket{++}$ state and can be rotated to $\ket{00}$. That is an optimization
+opportunity. The same statevector reasoning, applied adversarially to an
+educational ``spy hunter'' circuit, reveals a threat-model gap: an attacker who
+can access the state-preparation controls can prepare a second state for itself
+without touching the signal delivered to the receiver. That is a security
+lesson.
+
+The deeper point is not that every recycled ancilla is dangerous. It is that
+\emph{resource analysis and information-flow analysis must meet at the same
+qubit boundary}. A compiler that proves ``this wire is now $\ket{0}$'' has
+established something useful. A secure compiler should additionally establish
+``this wire is uncorrelated with protected data, and no unauthorized pass can
+claim it.''
+
+\subsection{Contributions}
+
+The paper makes seven contributions:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item It gives an explicit proof that a coherent teleportation circuit with
+  two final Hadamards maps $\ket{\psi00}$ to $\ket{00\psi}$ and preserves
+  entanglement with an arbitrary reference system.
+  \item It reconstructs three supplied Quirk exports in LaTeX and analyzes their
+  complete five-qubit amplitude data rather than relying on screenshots.
+  \item It proves that the advanced export is equivalent to the baseline at the
+  histogram level but not at the reduced-state level, then places this result in
+  a four-level hierarchy of ``same output.''
+  \item It resolves the semantic routing and fixed-input fifth-wire behavior in
+  a branch-conditioned source-access model, identifying when the retained wire
+  perfectly reveals Alice's value and when it becomes maximally mixed.
+  \item It proves a simple information-disturbance boundary that explains when
+  hidden ancillas can obtain information without changing a victim state.
+  \item It organizes the threat space into a hyperlinked capability matrix that
+  distinguishes direct feasibility, probabilistic or disturbance-limited
+  alternatives, formal no-go boundaries, and project-specific contributions.
+  \item It releases a reproducible Python artifact with command-line analysis,
+  automated numerical validation, multi-version continuous integration, and
+  deterministic output regression checks.
+\end{enumerate}
+
+\subsection{Claim and evidence map}
+
+The paper is deliberately explicit about where each statement comes from. This
+matters because quantum-security arguments can sound convincing long before the
+threat model or measurement boundary has been nailed down.
+
+\begin{table}[ht]
+\centering
+\caption{Status of the paper's central claims.}
+\label{tab:evidence-map}
+\begin{tabularx}{\textwidth}{@{}p{0.20\textwidth}X p{0.23\textwidth}@{}}
+\toprule
+Status & Claim & Evidence \\
+\midrule
+\evidencebadge{BaselineBlue}{PROVED} & Coherent teleportation plus two final
+Hadamards maps $\ket{\psi00}$ to $\ket{00\psi}$. & Symbolic derivation and
+reference-system extension. \\
+\evidencebadge{AdvancedTeal}{COMPUTED} & The advanced export matches the
+baseline $Z$-basis histogram but not the reduced density matrix. & Exact
+partial trace of the supplied 32-amplitude arrays. \\
+\evidencebadge{AdvancedTeal}{COMPUTED} & In the reconstructed fixed-input model,
+$q_4$ stores the spy measurement branch and reveals $v$ exactly when $e=b$. &
+Exact branch enumeration, reduced states, and trace-distance tests. \\
+\evidencebadge{InterceptOrange}{RECONSTRUCTED} & The circuit is best read as a
+source-access or privileged-compilation example. & Machine-readable gate
+columns plus author-supplied semantic interpretation. \\
+\evidencebadge{ProposalPurple}{PROPOSED} & Reclaimed qubits could become hidden
+workspace for a malicious compilation or control layer. & Threat model and
+research agenda; not yet a hardware demonstration. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{cautionbox}[The claim is intentionally narrow]
+A high-capability adversary, including a malicious insider, compromised vendor,
+or state actor, is a plausible threat actor. The mathematics is actor-agnostic,
+however. The paper analyzes what a privileged circuit modification could do; it
+does not claim evidence that any government or quantum provider has performed
+such an attack.
+\end{cautionbox}

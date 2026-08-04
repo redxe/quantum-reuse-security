@@ -1,0 +1,73 @@
+\section{Research Agenda}
+\label{sec:research-agenda}
+
+Revision 0.7 completes the first planned evidence stage, adds a structured
+security capability matrix, and converts the nearest remaining work into a
+public roadmap.
+
+\subsection{Completed baseline: semantic mapping and fixed-input tests}
+
+The ordered SWAP semantics are now documented, all $(v,b,e,r_E)$ branches are
+enumerated, the fifth-wire reduced states are calculated, and the victim
+subsystem is compared with a clean routed reference. The resulting theorem is
+\cref{eq:caseii-fixed-input-theorem}. Information metrics and deterministic
+regression outputs are included in the public artifact.
+
+\subsection{Immediate priority: exact detector reconstruction}
+
+The strongest next scientific task is to identify the full educational
+circuit's actual acceptance register. This requires:
+\begin{enumerate}
+  \item naming every classical selector, measurement result, and comparison bit;
+  \item reconstructing the detector flag as a Boolean function;
+  \item producing its truth table over every branch;
+  \item replacing the provisional rule in
+  \cref{eq:caseii-provisional-acceptance}; and
+  \item regenerating the deterministic outputs and manuscript claims.
+\end{enumerate}
+This step should precede any strong statement that the original educational
+detector has been bypassed.
+
+\subsection{Independent backend parity and software decomposition}
+
+The NumPy implementation is the validated reference. A Qiskit implementation
+should reproduce branch probabilities, reduced states, wire order, and metrics
+within documented tolerances. In parallel, the legacy monolithic analysis file
+should be decomposed into independently testable circuit, measurement, metric,
+validation, plotting, and orchestration modules. These are engineering tasks,
+but they strengthen the credibility and maintainability of the scientific
+artifact.
+
+\subsection{Formal information-flow property}
+
+After the detector semantics are fixed, define a noninterference-style property
+for reclaimed qubits. For a protected variable $X$, attacker register $E$, and
+approved victim observation policy $\mathcal{V}$, a secure transformation should
+establish both victim equivalence and an explicit information bound such as
+\begin{equation}
+  \mathcal{V}(\rho_{\mathrm{attack}})
+  \approx \mathcal{V}(\rho_{\mathrm{baseline}}),
+  \qquad I(X:E)\leq\varepsilon.
+\end{equation}
+The present case study supplies a counterexample to histogram-only verification,
+not yet a complete compiler-level noninterference framework. The matrix in
+\cref{sec:capability-matrix} provides the initial domain of attacker access,
+protected information, alternative routes, and mitigation annotations that the
+formal property must eventually cover.
+
+\subsection{Compiler prototype and hardware experiments}
+
+A controlled malicious-reuse prototype should then perform ordinary liveness
+analysis, identify reclaimed physical qubits, insert a benign synthetic payload,
+and evaluate stronger contracts and trap circuits. Hardware and noise studies
+should compare coherent cleanup, measurement-reset reuse, and fresh allocation,
+including routing, crosstalk, leakage, and calibration drift. All experiments
+should use synthetic secrets and authorized simulation or hardware.
+
+\subsection{Venue and audience}
+
+The work sits most naturally at the intersection of quantum software and quantum
+security, with an educational circuit serving as the motivating case study. A
+workshop, short research paper, or position paper aimed at that intersection is
+a plausible first venue. Final venue selection should follow detector
+reconstruction and external technical review.

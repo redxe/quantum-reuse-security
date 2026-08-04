@@ -1,0 +1,39 @@
+Qubits are scarce, so quantum software has to treat temporary workspace as a
+real resource. A qubit that has finished one job may be cleaned and reused for
+the next. The practical question sounds simple: when is that reuse actually
+safe? This paper argues that the answer has two parts. The qubit must be in a
+known, separable state, and the system must also prove that no hidden
+information flow survives through it.
+
+The first case study gives the constructive side. In coherent teleportation,
+deferred measurement replaces classical feed-forward with controlled quantum
+gates. The circuit factors as
+$\ket{++}\otimes\ket{\psi}$, and two final Hadamards produce the exact
+postcondition $\ket{00}\otimes\ket{\psi}$. The source and ancilla are therefore
+known, separable, and reusable in the ideal model.
+
+The second case study gives the adversarial side. Exact partial traces of three
+educational spy-detector exports show that the advanced circuit reproduces the
+baseline computational-basis distribution on the displayed four-wire register
+to within $8.90\times10^{-9}$ total-variation distance, while its purity falls
+from $1$ to $1/2$, its fidelity with the baseline is $0.4268$, and its trace
+distance is $0.6184$. A new fixed-input, branch-conditioned reconstruction then
+resolves the retained-wire semantics. The routing network maps
+$(q_2,q_3,q_4)$ to $(q_3,q_4,q_2)$, placing the spy-side measurement branch on
+$q_4$. For Alice's value $v$, basis $b$, and the spy's basis $e$, the averaged
+fifth-wire state is $\ket{v}\!\bra{v}$ when $e=b$ and $I/2$ when $e\neq b$.
+Within this reconstructed model, the legitimate subsystem is preserved with
+unit fidelity to floating-point precision.
+
+The result motivates a broader threat model: an untrusted compiler, runtime,
+source, or control stack may use reclaimed qubits as hidden workspace while
+preserving only the outputs a user verifies. We prove the corresponding
+information-disturbance boundary, distinguish four levels of circuit
+equivalence, and introduce a hyperlinked 5-by-6 security capability matrix that
+separates feasible, conditional, hypothetical, blocked, and unnecessary attack
+objectives across five adversary-access tiers. A linked appendix records what is
+touched, what may remain untouched, available alternatives, mitigations, and
+evidence for every cell. We also release a versioned research artifact with
+automated tests and deterministic regression checks. The exact Boolean acceptance register of the
+original educational detector, full Qiskit parity, and hardware validation
+remain explicit open problems.

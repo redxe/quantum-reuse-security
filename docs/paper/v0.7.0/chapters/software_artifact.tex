@@ -1,0 +1,60 @@
+\section{Open Research Artifact and Continuous Verification}
+\label{sec:software-artifact}
+
+The analysis is maintained as a public research-software artifact at
+\begin{center}
+\href{https://github.com/redxe/quantum-reuse-security}
+{\texttt{github.com/redxe/quantum-reuse-security}}.
+\end{center}
+The repository's version-0.6.0 baseline separates the command-line interface,
+circuit helpers, measurement utilities, metrics, state preparation, validation,
+and analysis orchestration under \texttt{src/quantum\_reuse/}. The exact NumPy
+backend remains the reference implementation because its statevector, branch,
+and partial-trace operations are visible without depending on an SDK-specific
+execution model.
+
+\subsection{Reproduction commands}
+
+A clean installation can run the complete analysis and fixed-input summary with
+\begin{lstlisting}[style=python]
+python -m quantum_reuse analyze --output run_output
+python -m quantum_reuse fixed-input-summary
+pytest -q
+\end{lstlisting}
+The analysis emits branch-conditioned CSV data, averaged fifth-wire states,
+distinguishability metrics, information summaries, numerical-validation data,
+a run report, and plots. The committed baseline CSV files are generated from
+the same command used in continuous integration.
+
+\subsection{Continuous-integration contract}
+
+The GitHub Actions workflow performs four layers of checking:
+\begin{enumerate}
+  \item install and test on Python 3.9, 3.11, and 3.13;
+  \item run Black formatting checks on the modular package surfaces, tests, and
+  examples;
+  \item run Flake8 and the Pytest regression suite; and
+  \item rerun the deterministic analysis on Python 3.11 and compare the three
+  principal CSV outputs with committed baselines using zero relative tolerance
+  and absolute tolerance $10^{-12}$.
+\end{enumerate}
+The workflow uses read-only repository permissions and disables persisted
+checkout credentials. Passing runs therefore establish that the documented
+software environment reproduces the committed numerical tables across the
+matrix; they do not by themselves establish hardware behavior or security
+against an adversarial implementation.
+
+\subsection{Public roadmap}
+
+The remaining work is recorded as public, reviewable issues:
+\begin{itemize}
+  \item \href{https://github.com/redxe/quantum-reuse-security/issues/1}
+  {Issue 1: reconstruct the exact educational detector acceptance register};
+  \item \href{https://github.com/redxe/quantum-reuse-security/issues/2}
+  {Issue 2: implement branch-level Qiskit parity with the NumPy model}; and
+  \item \href{https://github.com/redxe/quantum-reuse-security/issues/3}
+  {Issue 3: decompose the legacy monolithic analysis core while preserving the
+  public API and deterministic outputs}.
+\end{itemize}
+This issue structure makes the unresolved scientific and engineering boundaries
+visible to reviewers rather than hiding them behind a polished final result.

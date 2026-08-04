@@ -1,0 +1,173 @@
+\section{Security Capability Matrix}
+\label{sec:capability-matrix}
+
+The threat model is easiest to navigate when attacker access and information
+object are separated. Rows in \cref{tab:capability-matrix} describe what part of
+the stack the attacker can influence. Columns describe what the attacker is
+trying to obtain or preserve. Every cell is a hyperlink to a compact evidence
+record in \cref{app:capability-registry}.
+
+\begin{claimbox}[Intuitive rule motivating the matrix]
+\emph{``You have to start thinking about everything as a system instead of
+individuals.''} A controlled gate can resemble an ``if this, then that,'' but
+when the control is in superposition the condition is applied coherently across
+the joint state. The relevant security question is therefore not merely which
+single wire changed, but where recoverable information resides before and after
+the complete transformation.
+\end{claimbox}
+
+\subsection{Legend and navigation}
+\hypertarget{matrix:legend}{}
+
+\noindent
+\riskbadge{RiskGreen}{F}\ Demonstrated or established feasible\quad
+\riskbadge{RiskAmber}{P}\ Partial, probabilistic, access-dependent, or disturbance-limited\quad
+\riskbadge{RiskBlue}{H}\ Technically plausible but unvalidated here\quad
+\riskbadge{RiskRed}{N}\ Exact objective blocked under the stated assumptions\quad
+\riskbadge{RiskGray}{X}\ Unnecessary, superseded, or not applicable.
+
+\smallskip
+\noindent Symbols add meaning independently of color:
+\ourresult\ contribution demonstrated in this work;
+\candidatepriority\ candidate literature-priority claim requiring a complete
+related-work review;
+\workaround\ an alternative route avoids the direct limitation;
+\strongaccess\ stronger or combined attacker access is required;
+\nogo\ formal no-go boundary; and
+\mitigation\ an established or straightforward mitigation exists.
+A star therefore marks a project contribution, not an automatic claim of
+world-first novelty.
+
+\begin{landscape}
+\begin{table}[p]
+\centering
+\hypertarget{matrix:overview}{}
+\caption{Hyperlinked threat--information capability matrix. Select a cell code
+for its complete record in \cref{app:capability-registry}. Short phrases state
+the direct objective; arrows in the symbol line indicate that a nearby objective
+or stronger access model may avoid the direct limitation.}
+\label{tab:capability-matrix}
+\setlength{\tabcolsep}{2.3pt}
+\renewcommand{\arraystretch}{1.02}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.105\linewidth}
+                *{6}{>{\raggedright\arraybackslash}p{0.1415\linewidth}}}
+\toprule
+\cellcolor{DeepBlue!10}\textbf{Access} &
+\cellcolor{DeepBlue!10}\textbf{1. Orthogonal / classical value} &
+\cellcolor{DeepBlue!10}\textbf{2. Result / syndrome} &
+\cellcolor{DeepBlue!10}\textbf{3. Preparation label} &
+\cellcolor{DeepBlue!10}\textbf{4. Arbitrary unknown state} &
+\cellcolor{DeepBlue!10}\textbf{5. Metadata / ciphertext} &
+\cellcolor{DeepBlue!10}\textbf{6. Delayed-use correlation} \\
+\midrule
+\cellcolor{DeepBlue!6}\textbf{A}\\Channel only &
+\matrixsummary{A1}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Read or copy in a known orthogonal basis.}{\mitigation} &
+\matrixsummary{A2}{RiskAmberSoft}{\riskbadge{RiskAmber}{P}}{Obtain only if the result is exposed onto the channel.}{\workaround\strongaccess\mitigation} &
+\matrixsummary{A3}{RiskAmberSoft}{\riskbadge{RiskAmber}{P}}{Discriminate a restricted known ensemble with errors or inconclusive runs.}{\workaround} &
+\matrixsummary{A4}{RiskRedSoft}{\riskbadge{RiskRed}{N}}{Perfect extraction with perfect preservation is blocked.}{\nogo\workaround} &
+\matrixsummary{A5}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Copy exposed metadata or ciphertext; plaintext need not follow.}{\mitigation} &
+\matrixsummary{A6}{RiskAmberSoft}{\riskbadge{RiskAmber}{P}}{Store a noisy result now and interpret it after disclosure.}{\workaround} \\
+\midrule
+\cellcolor{DeepBlue!6}\textbf{B}\\Runtime / routing &
+\matrixsummary{B1}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Latch an orthogonal intermediate with controlled gates or routing.}{\mitigation} &
+\matrixsummary{B2}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Route a measured branch into reclaimed workspace.}{\ourresult\candidatepriority\strongaccess\mitigation} &
+\matrixsummary{B3}{RiskAmberSoft}{\riskbadge{RiskAmber}{P}}{Route a label only when an orthogonal label register already exists.}{\strongaccess} &
+\matrixsummary{B4}{RiskAmberSoft}{\riskbadge{RiskAmber}{P}}{Move the state exactly, but do not retain a second perfect copy.}{\workaround\nogo} &
+\matrixsummary{B5}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Route flags, tags, ciphertext, or control data into hidden workspace.}{\mitigation} &
+\matrixsummary{B6}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Retain a branch whose meaning increases after side information arrives.}{\ourresult\candidatepriority\strongaccess} \\
+\midrule
+\cellcolor{DeepBlue!6}\textbf{C}\\Compiler / transformation &
+\matrixsummary{C1}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Insert a coherent latch for an orthogonal secret-dependent value.}{\mitigation} &
+\matrixsummary{C2}{RiskBlueSoft}{\riskbadge{RiskBlue}{H}}{Insert covert measurement, routing, or logging operations.}{\candidatepriority\mitigation} &
+\matrixsummary{C3}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Re-prepare a state when symbolic source parameters are visible.}{\strongaccess\workaround} &
+\matrixsummary{C4}{RiskRedSoft}{\riskbadge{RiskRed}{N}}{No universal clone; redirect, probe, or restrict the ensemble instead.}{\nogo\workaround} &
+\matrixsummary{C5}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Leak circuit shape, scheduling, pulse, or workload metadata.}{\mitigation} &
+\matrixsummary{C6}{RiskBlueSoft}{\riskbadge{RiskBlue}{H}}{Preserve a latent correlation for later protocol information.}{\candidatepriority\strongaccess} \\
+\midrule
+\cellcolor{DeepBlue!6}\textbf{D}\\Source / preparation &
+\matrixsummary{D1}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{The source already possesses the classical preparation value.}{} &
+\matrixsummary{D2}{RiskAmberSoft}{\riskbadge{RiskAmber}{P}}{Bias, tag, or correlate outcomes; a genuinely random future result is not known in advance.}{\workaround} &
+\matrixsummary{D3}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Prepare a duplicate from known controls instead of cloning an unknown state.}{\ourresult\candidatepriority\workaround\strongaccess} &
+\matrixsummary{D4}{RiskRedSoft}{\riskbadge{RiskRed}{N}}{If the source itself lacks the state description, no-cloning still applies.}{\nogo\workaround} &
+\matrixsummary{D5}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Copy basis choices, identifiers, parameters, or ciphertext at the source.}{\mitigation} &
+\matrixsummary{D6}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Retain the label or measurement record until basis disclosure.}{\ourresult\strongaccess} \\
+\midrule
+\cellcolor{DeepBlue!6}\textbf{E}\\Hardware / backend &
+\matrixsummary{E1}{RiskAmberSoft}{\riskbadge{RiskAmber}{P}}{Preserve and repeatedly observe a selected QND observable, not the full state.}{\mitigation} &
+\matrixsummary{E2}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Log or leak outcomes and syndromes handled by the backend.}{\mitigation} &
+\matrixsummary{E3}{RiskAmberSoft}{\riskbadge{RiskAmber}{P}}{Infer encoder settings through probes or implementation side channels.}{\mitigation} &
+\matrixsummary{E4}{RiskRedSoft}{\riskbadge{RiskRed}{N}}{Hardware access does not permit perfect unknown-state extraction and preservation.}{\nogo\workaround} &
+\matrixsummary{E5}{RiskGreenSoft}{\riskbadge{RiskGreen}{F}}{Exploit timing, pulse behavior, calibration, or structural metadata.}{\mitigation} &
+\matrixsummary{E6}{RiskAmberSoft}{\riskbadge{RiskAmber}{P}}{Store classical traces; long-lived hidden quantum correlations face noise and reset.}{\mitigation} \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{landscape}
+
+\subsection{The starred project cluster}
+\label{subsec:matrix-starred-cluster}
+\hypertarget{matrix:starred}{}
+
+The three most important project-specific cells form a chain rather than three
+independent claims:
+
+\begin{tcolorbox}[
+  enhanced,colback=SoftTeal,colframe=AdvancedTeal,boxrule=0.55pt,
+  arc=1.5pt,left=8pt,right=8pt,top=8pt,bottom=8pt,
+  title={Source description $\rightarrow$ retained branch $\rightarrow$ later value}]
+\centering
+\begin{tikzpicture}[
+  node distance=1.05cm,
+  every node/.style={font=\footnotesize,align=center},
+  box/.style={rounded corners=2pt,draw=AdvancedTeal!80!black,
+    fill=white,minimum width=3.85cm,minimum height=1.28cm,inner sep=5pt},
+  arr/.style={-{Latex[length=2.2mm]},very thick,draw=AccentBlue}
+]
+\node[box] (d3) {\textbf{\hyperlink{cell:D3}{D3}}\ourresult\candidatepriority\\Duplicate preparation from\\known source controls};
+\node[box,right=of d3] (b2) {\textbf{\hyperlink{cell:B2}{B2}}\ourresult\candidatepriority\\Route the measured branch\\into the fifth wire};
+\node[box,right=of b2] (b6) {\textbf{\hyperlink{cell:B6}{B6}}\ourresult\candidatepriority\\Interpret the retained record\\after basis information};
+\draw[arr] (d3) -- node[above,font=\scriptsize]{clean victim branch} (b2);
+\draw[arr] (b2) -- node[above,font=\scriptsize]{side information} (b6);
+\end{tikzpicture}
+\end{tcolorbox}
+
+In the reconstructed fixed-input model, source access avoids the impossible task
+of cloning an arbitrary unknown channel state. The attacker instead prepares the
+victim branch from the same classical controls, routes the measured original
+branch to $q_4$, and later interprets that record conditioned on basis
+information. The chain combines a source-level alternative route with a
+runtime-level retention mechanism. It remains explicitly distinct from a
+channel-only attack and from a proven bypass of the original detector's exact
+Boolean acceptance register.
+
+\subsection{Touched, untouched, and avoided objectives}
+
+A cell is classified against its \emph{direct} objective. A red cell therefore
+does not imply that every nearby attack is impossible. It means that the stated
+combination of target, access, and preservation requirement cannot be achieved
+exactly. The \workaround\ symbol points reviewers to a changed objective or
+assumption, such as accepting disturbance, allowing an inconclusive branch,
+using multiple copies, moving rather than copying the state, targeting an
+orthogonal observable, or obtaining the classical preparation description
+upstream. The detailed registry records four fields for each cell:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item the mechanism or direct objective;
+  \item what the mechanism necessarily touches;
+  \item what may remain untouched under the stated model; and
+  \item the limitation, alternative route, mitigation, and evidence status.
+\end{enumerate}
+
+This distinction supports an optimization view of the broader research problem.
+For protected variable $X$, hidden register $E$, victim-visible subsystem $V$,
+and attacker transformation $\mathcal{A}$, one may ask
+\begin{equation}
+  \max_{\mathcal{A}}\; I_{\mathrm{acc}}(X:E)
+  \quad\text{subject to}\quad
+  D\!\left(\rho_V^{\mathcal{A}},\rho_V^{\mathrm{expected}}\right)\leq\varepsilon,
+  \qquad
+  P_{\mathrm{accept}}^{\mathcal{A}}\geq 1-\delta.
+  \label{eq:matrix-security-optimization}
+\end{equation}
+The matrix supplies a structured domain for that future formalization; it is not
+yet the optimization's solution.

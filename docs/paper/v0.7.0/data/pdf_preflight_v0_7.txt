@@ -1,0 +1,6 @@
+PDF: /mnt/data/_paper_v07_work/Vi_Connelly_Known_State_Qubits_Research_v0_7/main.pdf
+Pages: 34
+Encrypted: False
+Openable (PyMuPDF): True
+Likely scanned: False
+XFA present: False

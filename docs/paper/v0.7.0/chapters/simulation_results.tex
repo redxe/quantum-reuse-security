@@ -1,0 +1,93 @@
+\section{Ideal Simulation Results}
+\label{sec:simulation-results}
+
+The companion NumPy implementation provides reproducible checks of the paper's
+core identities. It does not claim hardware realism, and exact branch
+enumeration is used where sampling would obscure small differences.
+
+\subsection{Teleportation cleanup}
+
+Ten thousand Haar-like random single-qubit states were propagated through the
+three-qubit unitary in \cref{fig:teleport-cleanup}. The maximum statevector
+error after global-phase alignment was
+$4.45\times 10^{-16}$; minimum fidelity was greater than
+$1-1.8\times10^{-15}$. This numerically confirms the symbolic identity to
+floating-point precision.
+
+\subsection{Educational BB84 model}
+
+One million Monte Carlo trials produced the results in
+\cref{tab:simulation-results}. This simulation is a pedagogical BB84 abstraction
+and is distinct from the complete Quirk-export density-matrix calculation.
+
+\begin{table}[ht]
+\centering
+\caption{Ideal Monte Carlo results. ``Source access'' models duplicated
+preparation controls, not the exact screenshot wire permutations.}
+\label{tab:simulation-results}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Variant & Unconditional detection & Sifted QBER & Attacker accuracy when basis matches\\
+\midrule
+Baseline & 0 & 0 & --\\
+Intercept--resend & 0.125236 & 0.250620 & 1.000000\\
+Source access & 0 & 0 & 1.000000\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.68\textwidth]{figures/bb84_detection_rates.pdf}
+\caption{Ideal unconditional detection rates from one million simulated trials.
+The source-access case is silent because the legitimate signal is not
+intercepted.}
+\label{fig:detection-rates}
+\end{figure}
+
+\subsection{Exact Quirk-export analysis}
+
+The supplied machine-readable columns and complete output amplitudes remove the
+earlier screenshot-only ambiguity. The advanced circuit matches the baseline
+at level E0: their displayed $Z$-basis probability vectors agree to
+$8.90\times10^{-9}$ total-variation distance. It fails at level E1: purity is
+$1/2$, fidelity with the baseline is $0.4268$, and trace distance is $0.6184$.
+The corresponding density matrices and derivation appear in
+\cref{tab:caseii-density-metrics,fig:caseii-density-matrices}.
+
+\subsection{Fixed-input branch-conditioned analysis}
+
+The corrected model fixes $(v,b,e)$ and enumerates the spy's outcome $r_E$. The
+principal outputs are summarized in \cref{tab:fixed-input-summary}.
+
+\begin{table}[ht]
+\centering
+\caption{Information available from the retained fifth wire in the reconstructed
+fixed-input model.}
+\label{tab:fixed-input-summary}
+\begin{tabularx}{\textwidth}{@{}lcccX@{}}
+\toprule
+Condition & Retained state & Value trace distance & Best value guess & Interpretation\\
+\midrule
+$e=b$ & $\ket{v}\!\bra{v}$ & $1$ & $1$ & Perfect value record\\
+$e\neq b$ & $I/2$ & $0$ & $1/2$ & No value information locally\\
+Uniform $e$, forgotten & noisy $Z$ record & $1/2$ & $3/4$ &
+$0.188722$ bits of value mutual information\\
+Uniform $e$, retained & conditioned pair $(e,q_4)$ & -- & -- &
+$0.5$ bits of value information on average\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+With $v$ known and $e$ fixed, the retained state also distinguishes whether
+$b=e$ with trace distance $1/2$, giving a $75\%$ optimal basis guess and
+approximately $0.311278$ bits of mutual information. A single retained qubit
+does not encode the four $(v,b)$ possibilities as four perfectly distinguishable
+states; the result identifies a basis-conditioned value channel, not a
+four-symbol classical copy.
+
+Across every fixed branch, the maximum victim-subsystem trace distance from the
+clean routed reference was $1.23\times10^{-32}$ and the minimum fidelity was
+$1$. These numbers establish exactness only for the reconstructed ideal model.
+The detector's original Boolean acceptance register remains unresolved, and the
+public software labels the current acceptance rule provisional.

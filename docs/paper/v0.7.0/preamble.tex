@@ -1,0 +1,221 @@
+\usepackage[a4paper,top=20mm,bottom=22mm,left=22mm,right=22mm,headheight=20pt,headsep=8pt]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsthm,amsfonts,mathtools}
+\usepackage{braket}
+\usepackage{booktabs,tabularx,array,multirow,longtable}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{adjustbox}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{pdflscape}
+\usepackage{multicol}
+\usepackage{needspace}
+\usetikzlibrary{quantikz,patterns,patterns.meta,arrows.meta,positioning,fit,calc}
+\usepackage{pgfplots}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+\usepackage[most]{tcolorbox}
+\usepackage{csquotes}
+\usepackage{hyperref}
+\usepackage[capitalize,nameinlink,noabbrev]{cleveref}
+\usepackage[backend=biber,style=numeric-comp,sorting=none,maxbibnames=99]{biblatex}
+\addbibresource{references.bib}
+
+% A restrained, colorblind-friendly palette used consistently throughout.
+\definecolor{AccentBlue}{HTML}{2457C5}
+\definecolor{DeepBlue}{HTML}{173B5E}
+\definecolor{BaselineBlue}{HTML}{0072B2}
+\definecolor{InterceptOrange}{HTML}{E69F00}
+\definecolor{AdvancedTeal}{HTML}{009E73}
+\definecolor{ProposalPurple}{HTML}{6F5AA8}
+\definecolor{WarningRed}{HTML}{B33A3A}
+\definecolor{SoftBlue}{HTML}{EEF4FA}
+\definecolor{SoftOrange}{HTML}{FFF6E5}
+\definecolor{SoftTeal}{HTML}{EAF7F2}
+\definecolor{SoftGray}{HTML}{F4F5F7}
+\definecolor{MidGray}{HTML}{6B7280}
+% Matrix colors are deliberately pale and paired with explicit text badges so
+% that color is never the only carrier of meaning.
+\definecolor{RiskGreen}{HTML}{177245}
+\definecolor{RiskGreenSoft}{HTML}{E8F5EC}
+\definecolor{RiskAmber}{HTML}{A85D00}
+\definecolor{RiskAmberSoft}{HTML}{FFF2D8}
+\definecolor{RiskBlue}{HTML}{2457C5}
+\definecolor{RiskBlueSoft}{HTML}{EAF1FF}
+\definecolor{RiskRed}{HTML}{A63B3B}
+\definecolor{RiskRedSoft}{HTML}{FBEAEA}
+\definecolor{RiskGray}{HTML}{59616B}
+\definecolor{RiskGraySoft}{HTML}{F0F2F4}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=AccentBlue,
+  citecolor=AdvancedTeal,
+  urlcolor=AccentBlue,
+  pdftitle={Known-State Qubits as Both Resource and Risk},
+  pdfauthor={Vi Connelly; GPT-5.6 Thinking (OpenAI), AI research and drafting collaborator},
+  pdfsubject={Quantum compilation, qubit reuse, information flow, security capability matrix, and verification}
+}
+
+\setlength{\parindent}{1.25em}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+\setlist{nosep,leftmargin=1.7em,topsep=3pt}
+\captionsetup{font=small,labelfont=bf,labelsep=period,skip=5pt}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+\renewcommand{\cftsecfont}{\color{AccentBlue}}
+\renewcommand{\cftsecpagefont}{\color{AccentBlue}}
+\renewcommand{\cftsubsecfont}{\small}
+\renewcommand{\cftsubsecpagefont}{\small}
+\setlength{\cftbeforesecskip}{2pt}
+\setlength{\cftbeforesubsecskip}{0pt}
+
+\titleformat{\section}
+  {\Large\bfseries\color{DeepBlue}}
+  {\thesection}{0.65em}{}
+  [\vspace{0.2em}\color{black!25}\titlerule]
+\titleformat{name=\section,numberless}
+  {\Large\bfseries\color{DeepBlue}}
+  {}{0pt}{}
+  [\vspace{0.2em}\color{black!25}\titlerule]
+\titleformat{\subsection}
+  {\large\bfseries}
+  {\thesubsection}{0.55em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{DeepBlue}}
+  {\thesubsubsection}{0.5em}{}
+\titleformat{\paragraph}[runin]
+  {\normalsize\bfseries}
+  {}{0pt}{}[\quad]
+\titlespacing*{\section}{0pt}{1.25em}{0.65em}
+\titlespacing*{\subsection}{0pt}{1.0em}{0.4em}
+\titlespacing*{\subsubsection}{0pt}{0.8em}{0.25em}
+\titlespacing*{\paragraph}{0pt}{0.65em}{0.5em}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{AccentBlue}Known-State Qubits as Both Resource and Risk}
+\fancyhead[R]{\small\color{AccentBlue}$\triangleright$\ \nouppercase{\rightmark}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.45pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{black!35}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\id}{\mathbb{I}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prb}{\operatorname{Pr}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\ketproj}[1]{\ket{#1}\!\bra{#1}}
+\newcommand{\cnot}{\operatorname{CNOT}}
+\newcommand{\cz}{\operatorname{CZ}}
+\newcommand{\todo}[1]{\textcolor{WarningRed}{\textbf{[TODO: #1]}}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remx}[theorem]{Remark}
+\newenvironment{rem}
+  {\pushQED{\qed}\renewcommand{\qedsymbol}{$\diamond$}\remx}
+  {\popQED\endremx}
+
+\newtcolorbox{plainbox}[1][]{
+  enhanced,breakable,colback=SoftGray,colframe=black!45,
+  boxrule=0.45pt,arc=1.5pt,left=7pt,right=7pt,top=5pt,bottom=5pt,
+  before skip=5pt,after skip=5pt,title={#1},fonttitle=\bfseries
+}
+\newtcolorbox{claimbox}[1][]{
+  enhanced,breakable,colback=SoftBlue,colframe=BaselineBlue,
+  boxrule=0.55pt,leftrule=2.4pt,arc=1.5pt,left=7pt,right=7pt,top=5pt,bottom=5pt,
+  before skip=5pt,after skip=5pt,title={#1},fonttitle=\bfseries
+}
+\newtcolorbox{cautionbox}[1][]{
+  enhanced,breakable,colback=SoftOrange,colframe=InterceptOrange,
+  boxrule=0.55pt,leftrule=2.4pt,arc=1.5pt,left=7pt,right=7pt,top=5pt,bottom=5pt,
+  before skip=5pt,after skip=5pt,title={#1},fonttitle=\bfseries
+}
+\newtcolorbox{limitbox}[1][]{
+  enhanced,breakable,colback=SoftGray,colframe=WarningRed,
+  boxrule=0.55pt,leftrule=2.4pt,arc=1.5pt,left=7pt,right=7pt,top=5pt,bottom=5pt,
+  before skip=5pt,after skip=5pt,title={#1},fonttitle=\bfseries
+}
+\newtcolorbox{aibox}[1][]{
+  enhanced,breakable,colback=SoftTeal,colframe=AdvancedTeal,
+  boxrule=0.55pt,leftrule=2.4pt,arc=1.5pt,left=7pt,right=7pt,top=5pt,bottom=5pt,
+  before skip=5pt,after skip=5pt,title={#1},fonttitle=\bfseries
+}
+
+\newcommand{\evidencebadge}[2]{%
+  \tikz[baseline=(n.base)]\node[rounded corners=1.5pt,inner xsep=4pt,inner ysep=1.5pt,
+  fill=#1!13,draw=#1!75,text=#1!80!black,font=\scriptsize\bfseries] (n) {#2};%
+}
+
+
+
+% Hyperlinked security capability matrix helpers.
+\newcommand{\riskbadge}[2]{%
+  \tikz[baseline=(n.base)]\node[rounded corners=1.3pt,inner xsep=3pt,
+  inner ysep=1pt,fill=#1!12,draw=#1!75,text=#1!85!black,
+  font=\tiny\bfseries] (n) {#2};%
+}
+\newcommand{\ourresult}{\textsuperscript{\ensuremath{\bigstar}}}
+\newcommand{\candidatepriority}{\textsuperscript{\ensuremath{\ddagger}}}
+\newcommand{\workaround}{\textsuperscript{\ensuremath{\hookrightarrow}}}
+\newcommand{\strongaccess}{\textsuperscript{\ensuremath{\dagger}}}
+\newcommand{\nogo}{\textsuperscript{\ensuremath{\varnothing}}}
+\newcommand{\mitigation}{\textsuperscript{\textsf{M}}}
+\newcommand{\matrixback}{\hyperlink{matrix:overview}{\textcolor{AccentBlue}{\scriptsize$\lhd$ Back to matrix}}}
+\newcommand{\matrixsummary}[5]{%
+  \cellcolor{#2}%
+  \begin{minipage}[t][2.02cm][t]{\linewidth}
+    \textbf{\hyperlink{cell:#1}{#1}}\hfill #3\\[-1pt]
+    \raggedright\scriptsize #4\par
+    \vfill\raggedleft\scriptsize #5
+  \end{minipage}%
+}
+\newtcolorbox{matrixrecord}[2][]{
+  enhanced,colback=#2,colframe=black!35,boxrule=0.45pt,arc=1.4pt,
+  left=6pt,right=6pt,top=5pt,bottom=5pt,before skip=5pt,after skip=5pt,
+  title={#1},fonttitle=\bfseries\small
+}
+
+\lstdefinestyle{python}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{AccentBlue}\bfseries,
+  commentstyle=\color{AdvancedTeal!75!black}\itshape,
+  stringstyle=\color{ProposalPurple!85!black},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black!25},
+  backgroundcolor=\color{SoftGray},
+  columns=fullflexible,
+  xleftmargin=0.4em,
+  xrightmargin=0.4em
+}
+
+\graphicspath{{./figures/}}
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}

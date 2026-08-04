@@ -1,0 +1,65 @@
+\section*{How to Read This Paper}
+\addcontentsline{toc}{section}{How to Read This Paper}
+
+This paper began with two circuit observations that looked unrelated.
+
+The first was constructive: in a coherent version of quantum teleportation,
+two qubits end in a known state and can be cleaned for reuse. The second was
+adversarial: in an educational spy-detector circuit, a more privileged
+modification could restore the computational-basis output pattern while leaving
+hidden correlations elsewhere in the state.
+
+The connection is simple once it is stated. A qubit that becomes available is
+both a resource and a boundary. A compiler may reuse it because a postcondition
+says the earlier computation is finished with it. A malicious or untrusted
+system layer may want that same qubit because it is available workspace. The
+paper asks what must be proved before reuse is safe, and what a user must measure
+before saying that a modified computation is actually equivalent to the one they
+intended to run.
+
+\paragraph{How to navigate the argument.}
+Readers interested primarily in compiler optimization can begin with
+\cref{sec:preliminaries,sec:case-study-i}. Readers interested in circuit-level
+security can begin with \cref{sec:case-study-ii,sec:equivalence-levels}.
+\Cref{sec:information-boundary} gives the general mathematical boundary, while
+\cref{sec:threat-model,sec:capability-matrix,sec:defenses,sec:research-agenda}
+develop the systems implications. The appendices collect resource counts, reproducibility details, a hyperlinked
+cell-by-cell capability registry, the software artifact, and the questions that
+remain open before submission.
+
+\paragraph{Evidence labels.}
+The paper separates what is proved from what is reconstructed or proposed:
+
+\begin{center}
+\begin{tabular}{@{}ll@{\qquad}ll@{}}
+\evidencebadge{BaselineBlue}{PROVED} & symbolic derivation or theorem &
+\evidencebadge{AdvancedTeal}{COMPUTED} & reproducible numerical result \\
+\evidencebadge{InterceptOrange}{RECONSTRUCTED} & inferred from supplied exports &
+\evidencebadge{ProposalPurple}{PROPOSED} & research hypothesis or design \\
+\end{tabular}
+\end{center}
+
+\paragraph{Status and scope.}
+This is Research Draft 0.7. It combines symbolic derivations, supplied Quirk
+column arrays, complete five-wire amplitude exports, fixed-input branch analysis, exact reduced-state
+calculations, ideal simulations, and a continuously tested software artifact. It does not claim a new teleportation
+protocol, a break of BB84, a demonstrated attack on production quantum hardware,
+or the recovery of arbitrary encrypted information.
+
+The central claim is narrower: a known-state qubit should not be considered safe
+to reuse merely because one visible output distribution looks correct. Safe
+reuse requires a statement about state, separability, liveness, and information
+flow.
+
+\paragraph{Plain-language summary.}
+A cleaned qubit is like an erased whiteboard. It is useful because the next
+calculation can write on it. But ``the board looks blank'' and ``nothing secret
+remains connected to the board'' are not the same statement.
+
+Quantum mechanics makes the distinction unusually sharp. Classical-looking,
+orthogonal information can be copied into hidden workspace while the original
+register remains unchanged. An arbitrary unknown superposition cannot be
+learned perfectly in the same way without leaving a physical trace. The hard
+engineering problem lives between those extremes: real programs mix quantum
+coherence with classical controls, compilers transform circuits across layers,
+and users often verify only a small subset of the final state.

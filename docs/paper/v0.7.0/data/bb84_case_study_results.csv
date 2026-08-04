@@ -1,0 +1,4 @@
+variant,shots,unconditional_detection_rate,sifted_qber,eve_accuracy_given_basis_match,eve_basis_match_fraction
+baseline,1000000,0.0,0.0,nan,0.0
+intercept_resend,1000000,0.125236,0.2506203672574164,1.0,0.499732
+source_access,1000000,0.0,0.0,1.0,0.499732

@@ -1,0 +1,19 @@
+\begin{tikzpicture}
+\begin{groupplot}[
+group style={group size=1 by 3,vertical sep=0.82cm},
+width=0.92\textwidth,height=0.185\textwidth,
+xmin=-0.7,xmax=15.7,ymin=0,ymax=0.14,
+ytick={0,0.0625,0.125},yticklabels={$0$,$1/16$,$1/8$},
+ylabel={probability},
+axis line style={black!65},tick style={black!65},
+title style={font=\small\bfseries},
+grid=major,grid style={black!10},
+]
+\nextgroupplot[title={Baseline},xtick=\empty]
+\addplot[ybar,bar width=4.2pt,fill=BaselineBlue!78,draw=BaselineBlue!95!black] coordinates {(0,0.125000002225) (1,0) (2,0.0624999988874) (3,0.0624999988874) (4,0) (5,0.125000002225) (6,0.0624999988874) (7,0.0624999988874) (8,0.0624999988874) (9,0.0624999988874) (10,0.125000002225) (11,0) (12,0.0624999988874) (13,0.0624999988874) (14,0) (15,0.125000002225)};
+\nextgroupplot[title={Intercept--resend},xtick=\empty]
+\addplot[ybar,bar width=4.2pt,fill=InterceptOrange!78,draw=InterceptOrange!95!black] coordinates {(0,0.0625000011126) (1,0.0625000011126) (2,0.0624999988874) (3,0.0624999988874) (4,0.0625000011126) (5,0.0625000011126) (6,0.0624999988874) (7,0.0624999988874) (8,0.124999997775) (9,0.124999997775) (10,0.125000002225) (11,0.125000002225) (12,0) (13,0) (14,0) (15,0)};
+\nextgroupplot[title={Advanced source access},xtick={0,1,...,15},xticklabels={$0000$,$0001$,$0010$,$0011$,$0100$,$0101$,$0110$,$0111$,$1000$,$1001$,$1010$,$1011$,$1100$,$1101$,$1110$,$1111$},x tick label style={rotate=55,anchor=east,font=\scriptsize},xlabel={display-register basis state}]
+\addplot[ybar,bar width=4.2pt,fill=AdvancedTeal!78,draw=AdvancedTeal!95!black] coordinates {(0,0.124999997775) (1,0) (2,0.0624999988874) (3,0.0624999988874) (4,0) (5,0.124999997775) (6,0.0624999988874) (7,0.0624999988874) (8,0.0625000011126) (9,0.0625000011126) (10,0.125000002225) (11,0) (12,0.0625000011126) (13,0.0625000011126) (14,0) (15,0.125000002225)};
+\end{groupplot}
+\end{tikzpicture}

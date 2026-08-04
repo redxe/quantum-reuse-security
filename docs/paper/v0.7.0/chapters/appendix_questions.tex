@@ -1,0 +1,41 @@
+\section{Resolved Questions and Open Roadmap}
+\label{app:questions}
+
+\subsection{Resolved in Revision 0.6}
+
+\begin{enumerate}
+  \item The SWAP pair maps $(q_2,q_3,q_4)$ to $(q_3,q_4,q_2)$. The fifth
+  physical wire inherits the former spy-side $q_2$ branch and acts as the
+  candidate latch.
+  \item For fixed $(v,b,e)$, the fifth wire reveals $v$ perfectly when $e=b$
+  and is maximally mixed when $e\neq b$. The branch-conditioned state itself is
+  $\ket{r_E}\!\bra{r_E}$.
+  \item The author affiliation is Independent Researcher, Anderson, Indiana,
+  USA, and the public artifact is
+  \url{https://github.com/redxe/quantum-reuse-security}.
+  \item The repository now includes a tested package surface, command-line
+  analysis, deterministic baseline data, and GitHub Actions verification.
+\end{enumerate}
+
+\subsection{Required before a stronger detector claim}
+
+\begin{enumerate}
+  \item Which register and Boolean observable constitute the full original
+  educational detector's acceptance condition?
+  \item Does an independent Qiskit branch model reproduce the NumPy reference
+  state ordering, reduced states, and metrics?
+  \item Which formal noninterference statement best captures secure qubit
+  reclamation under a privileged compiler or runtime threat model?
+\end{enumerate}
+
+\subsection{Required before venue submission}
+
+\begin{enumerate}
+  \item Select the initial audience and venue: quantum software, quantum
+  security, or an interdisciplinary workshop/position-paper track.
+  \item Obtain adversarial review of the threat model, fixed-input abstraction,
+  and detector semantics.
+  \item Decide whether the next major contribution is a formal information-flow
+  framework or a controlled compiler prototype; hardware experiments should
+  follow only after those semantics are stable.
+\end{enumerate}

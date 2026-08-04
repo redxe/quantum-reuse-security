@@ -1,0 +1,46 @@
+\section{Preliminaries: What Does It Mean for a Qubit to Be ``Clean''?}
+\label{sec:preliminaries}
+
+\subsection{Known state, separability, and liveness}
+
+\begin{definition}[Clean qubit]
+A qubit $q$ is \emph{clean with value $\ket{\phi}$} relative to the remaining
+live system $L$ when the joint state factors as
+\begin{equation}
+  \rho_{qL}=\ket{\phi}\!\bra{\phi}_{q}\otimes\rho_L.
+  \label{eq:clean-definition}
+\end{equation}
+\end{definition}
+
+The factorization is essential. A qubit that produces $0$ with high probability
+is not necessarily clean. It may retain phase error, leakage outside the
+computational subspace, or correlations with live data.
+
+\begin{definition}[Reclaimed qubit]
+A clean qubit is \emph{reclaimed} when the legitimate program has no future
+semantic dependence on its previous logical identity and the runtime assigns it
+to a new logical role.
+\end{definition}
+
+The distinction mirrors classical memory management, but quantum cleanup is
+stricter. A classical buffer can be overwritten even when correlated copies
+exist elsewhere. A quantum qubit cannot be safely released if it remains
+entangled with live outputs.
+
+\subsection{Reduced states and hidden correlations}
+
+Suppose a legitimate register $S$ shares a joint state $\rho_{SE}$ with an
+attacker-controlled register $E$. The legitimate user sees only
+\begin{equation}
+  \rho_S=\Tr_E(\rho_{SE}).
+\end{equation}
+Two global states can have the same reduced state on $S$ while differing in
+correlations with $E$. This is the mathematical location of a possible hidden
+channel.
+
+Yet there is an important constraint: when $\rho_S$ is a pure state, any joint
+extension must factor. Thus, if an arbitrary pure victim state is exactly
+preserved, an environment cannot remain correlated with it. Hidden leakage is
+possible only when the inputs contain an accessible classical component, the
+victim checks an incomplete observable, or the implementation exposes
+additional preparation information.
