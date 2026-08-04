@@ -101,20 +101,31 @@ Alice's input qubit is set to
 $|\psi(\theta,\phi)\rangle
 = \cos\!\tfrac{\theta}{2}\ket{0}
 + e^{i\phi}\sin\!\tfrac{\theta}{2}\ket{1}$
-for $(\theta,\phi) \in [0,\pi)\times[0,2\pi)$.
+for $(\theta,\phi) \in [0,\pi]\times[0,2\pi)$.
 
 The test suite \texttt{tests/test\_parametric\_victim.py} runs two sweeps:
 \begin{enumerate}
-  \item A structured 60-sample grid: six values of $\theta$ by five values of
-  $\phi$ for each of the two Eve bases, covering the Bloch sphere at uniform
-  elevation spacing.
-  \item A 200-sample pseudorandom sweep (NumPy seed 42) drawing $\theta$ and
-  $\phi$ uniformly from their respective ranges.
+  \item A structured angular grid: six values of
+  $\theta \in \{0, \pi/4, \pi/3, \pi/2, 2\pi/3, \pi\}$ by five values of
+  $\phi$, for each of the two Eve bases, yielding 60 parameter settings
+  and 108 realized branches. (At the Bloch poles $\theta\in\{0,\pi\}$,
+  one outcome branch has probability zero and is excluded.)
+  \item A 200-sample deterministic sweep: $\theta$ and $\phi$ drawn
+  independently and uniformly from $[0,\pi)$ and $[0,2\pi)$ respectively
+  using NumPy seed~42, for each of the two Eve bases, giving
+  400 parameter settings and 800 realized branches. Uniform draws over
+  $(\theta,\phi)$ are not Haar-uniform over Bloch-sphere surface area; the
+  sweep is intended as deterministic coverage, not a Haar-random sample.
 \end{enumerate}
-Across all 520 parameterized branches the maximum victim-subsystem trace
-distance was below $10^{-10}$ and the minimum fidelity exceeded
-$1-10^{-10}$. The Qiskit Statevector backend reproduces every branch
-independently at the same tolerance, providing cross-backend confirmation.
+Numerical results are derived from the committed artifact
+\texttt{data/parametric\_victim\_summary.json}. Across all
+908 realized branches from 460 parameter settings, the maximum
+victim-subsystem trace distance was $8.6\times10^{-16}$ (below machine
+epsilon; threshold~$10^{-10}$) and the minimum fidelity was $1{-}4\times10^{-16}$
+to floating-point precision. A separate Qiskit Statevector cross-check
+covered 16 parameter settings (eight pseudorandom pure states in both Eve
+bases, NumPy seed~7), agreeing with NumPy on all 32 realized branches within
+$10^{-10}$.
 
 \begin{cautionbox}[Numerical verification, not a formal channel theorem]
 Sweeping over $(\theta,\phi)$ demonstrates preservation for every tested

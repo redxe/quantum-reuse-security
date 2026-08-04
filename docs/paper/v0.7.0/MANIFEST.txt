@@ -36,6 +36,7 @@ data/manuscript_audit.txt
 data/pdf_preflight_v0_7.txt
 data/quirk_exact_metrics.csv
 data/quirk_exact_output_amplitudes.json
+data/parametric_victim_summary.json
 data/quirk_reduced_density_advanced.csv
 data/quirk_reduced_density_baseline.csv
 data/quirk_reduced_density_intercept_resend.csv

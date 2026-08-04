@@ -69,10 +69,16 @@ def test_victim_preservation_random_sweep() -> None:
                         f"e={eve_basis} r_E={b.eve_result} "
                         f"fidelity={b.victim_fidelity:.10f}"
                     )
+                if b.victim_trace_distance >= TRACE_DIST_TOL:
+                    failures.append(
+                        f"[{i}] theta={theta:.5f} phi={phi:.5f} "
+                        f"e={eve_basis} r_E={b.eve_result} "
+                        f"trace_distance={b.victim_trace_distance:.2e}"
+                    )
 
     assert (
         not failures
-    ), f"{len(failures)} fidelity failures (showing first 5):\n" + "\n".join(
+    ), f"{len(failures)} failures (showing first 5):\n" + "\n".join(
         failures[:5]
     )
 

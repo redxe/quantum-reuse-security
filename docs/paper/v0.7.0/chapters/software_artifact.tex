@@ -12,8 +12,9 @@ and analysis orchestration under \texttt{src/quantum\_reuse/}. The exact NumPy
 backend remains the reference implementation because its statevector, branch,
 and partial-trace operations are visible without depending on an SDK-specific
 execution model. An optional Qiskit Statevector backend (\texttt{qiskit\_backend.py})
-reproduces all branch probabilities and reduced states at the parametric level
-and is gated by a permanent CI job.
+provides two levels of parity: exhaustive fixed-input parity (43 cases) plus
+one end-to-end CSV artifact comparison, and a sampled continuous-state check
+(16 parameter settings). Both are gated by the permanent \texttt{qiskit-parity} CI job.
 
 \subsection{Reproduction commands}
 
@@ -39,9 +40,10 @@ The GitHub Actions workflow performs five layers of checking:
   \item rerun the deterministic analysis on Python 3.11 and compare the three
   principal CSV outputs with committed baselines using zero relative tolerance
   and absolute tolerance $10^{-12}$; and
-  \item run the Qiskit parametric parity suite on Python 3.11, confirming that
-  the Qiskit Statevector backend agrees with NumPy across 43 parametric cases
-  and one end-to-end CSV artifact comparison.
+  \item run the Qiskit parity suite on Python 3.11, confirming exhaustive
+  fixed-input parity (43 cases + 1 end-to-end CSV comparison) and a sampled
+  continuous-state cross-check (16 parameter settings, 8 pure states ×
+  2 Eve bases, seed 7).
 \end{enumerate}
 The workflow uses read-only repository permissions and disables persisted
 checkout credentials. Passing runs therefore establish that the documented

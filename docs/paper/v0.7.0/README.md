@@ -18,7 +18,7 @@ Public repository: https://github.com/redxe/quantum-reuse-security
 - Author metadata updated to Vi Connelly.
 - Hyperlinked 5-by-6 security capability matrix with a complete cell registry.
 - Color-and-symbol legend that distinguishes feasibility, no-go boundaries, alternatives, mitigations, and project contributions.
-- **Qiskit Statevector parity backend** (`qiskit_backend.py`) with permanent `qiskit-parity` CI gate; 44-test parity suite.
+- **Qiskit Statevector parity backend** (`qiskit_backend.py`) with permanent `qiskit-parity` CI gate; exhaustive fixed-input parity (43 cases + 1 end-to-end CSV), plus a sampled continuous-state check (8 states × 2 Eve bases).
 - **Monolith decomposition** (Issue #3): analysis orchestration moved to `analysis.py`; legacy facade retained for backward compatibility.
 - **Privilege vocabulary** (Issue #5): use/read/retain/export framework formalized in threat model chapter.
 - **Parametric victim-channel preservation** (Issue #7): 60-sample grid + 200-sample random sweep confirm preservation beyond BB84 inputs, cross-validated with Qiskit.
