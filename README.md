@@ -16,7 +16,9 @@ What is currently implemented and validated:
 - Exact branch-conditioned analysis with a NumPy reference backend.
 - Qiskit Statevector parity backend (`qiskit_backend.py`): exact simulation
   that reproduces NumPy results within $10^{-10}$, verified by 43 parametric
-  CI tests across all eight `(value, basis, Eve basis)` input combinations.
+  branch-level CI tests across all eight `(value, basis, Eve basis)` input
+  combinations plus 1 end-to-end artifact test that compares all three
+  generated CSV files between backends.
 - Fixed-input fifth-wire theorem tested in code:
   - $\rho_5^{(v,b,e)} = |v\rangle\langle v|$ when $e=b$.
   - $\rho_5^{(v,b,e)} = I/2$ when $e\neq b$.
