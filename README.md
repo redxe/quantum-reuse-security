@@ -174,8 +174,11 @@ This rule is intentionally labeled provisional until the original educational ci
 ## Research Draft 0.6 Artifacts
 
 - PDF manuscript: [docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_6.pdf](docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_6.pdf)
-- Full source package: [docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Package_v0_6.zip](docs/paper/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Package_v0_6.zip)
+- Full source package (release asset): [Vi_Connelly_Known_State_Qubits_Research_Package_v0_6.zip](https://github.com/redxe/quantum-reuse-security/releases/download/v0.6.0/Vi_Connelly_Known_State_Qubits_Research_Package_v0_6.zip)
 - Standalone LaTeX entry file: [docs/paper/v0.6.0/source/main.tex](docs/paper/v0.6.0/source/main.tex)
+
+Repository hygiene policy: keep manuscript source and PDF in Git, and publish
+manuscript ZIP archives as release assets only.
 
 ## Citation
 
