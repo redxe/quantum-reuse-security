@@ -2,15 +2,41 @@
 
 import numpy as np
 
-from .parameterized_fifth_wire_analysis import (
-    H,
-    I2,
-    X,
-    apply_single,
-    apply_swap,
-    rz,
-    ry,
-)
+I2 = np.eye(2, dtype=complex)
+X = np.array([[0, 1], [1, 0]], dtype=complex)
+H = np.array([[1, 1], [1, -1]], dtype=complex) / np.sqrt(2)
+
+
+def ry(theta: float) -> np.ndarray:
+    return np.array(
+        [
+            [np.cos(theta / 2), -np.sin(theta / 2)],
+            [np.sin(theta / 2), np.cos(theta / 2)],
+        ],
+        dtype=complex,
+    )
+
+
+def rz(phi: float) -> np.ndarray:
+    return np.array(
+        [
+            [np.exp(-1j * phi / 2), 0],
+            [0, np.exp(1j * phi / 2)],
+        ],
+        dtype=complex,
+    )
+
+
+def apply_single(state: np.ndarray, gate: np.ndarray, qubit: int, n: int) -> np.ndarray:
+    tensor = state.reshape([2] * n)
+    transformed = np.tensordot(gate, tensor, axes=([1], [qubit]))
+    transformed = np.moveaxis(transformed, 0, qubit)
+    return transformed.reshape(-1)
+
+
+def apply_swap(state: np.ndarray, q1: int, q2: int, n: int) -> np.ndarray:
+    tensor = state.reshape([2] * n)
+    return np.swapaxes(tensor, q1, q2).reshape(-1)
 
 
 def _apply_cnot(state: np.ndarray, control: int, target: int, n: int) -> np.ndarray:

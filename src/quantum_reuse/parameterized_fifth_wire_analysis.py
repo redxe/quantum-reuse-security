@@ -31,7 +31,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 import argparse
 import json
 
@@ -39,36 +38,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from .circuits import H, apply_single, apply_swap, rz, ry
 from .metrics import binary_entropy, bloch_vector, fidelity_with_pure, trace_distance
+from .measurements import measurement_branch, reduced_density_pure
 from .validation import (
     canonicalize_validation_summary,
     estimate_error_bounds,
     validate_density_matrix,
 )
-
-I2 = np.eye(2, dtype=complex)
-X = np.array([[0, 1], [1, 0]], dtype=complex)
-H = np.array([[1, 1], [1, -1]], dtype=complex) / np.sqrt(2)
-
-
-def ry(theta: float) -> np.ndarray:
-    return np.array(
-        [
-            [np.cos(theta / 2), -np.sin(theta / 2)],
-            [np.sin(theta / 2), np.cos(theta / 2)],
-        ],
-        dtype=complex,
-    )
-
-
-def rz(phi: float) -> np.ndarray:
-    return np.array(
-        [
-            [np.exp(-1j * phi / 2), 0],
-            [0, np.exp(1j * phi / 2)],
-        ],
-        dtype=complex,
-    )
 
 
 def bb84_angles(value: int, basis: int) -> tuple[float, float]:
@@ -82,46 +59,6 @@ def bb84_angles(value: int, basis: int) -> tuple[float, float]:
     if basis == 0:
         return (np.pi * value, 0.0)
     return (np.pi / 2, np.pi * value)
-
-
-def apply_single(state: np.ndarray, gate: np.ndarray, qubit: int, n: int) -> np.ndarray:
-    tensor = state.reshape([2] * n)
-    transformed = np.tensordot(gate, tensor, axes=([1], [qubit]))
-    transformed = np.moveaxis(transformed, 0, qubit)
-    return transformed.reshape(-1)
-
-
-def apply_swap(state: np.ndarray, q1: int, q2: int, n: int) -> np.ndarray:
-    tensor = state.reshape([2] * n)
-    return np.swapaxes(tensor, q1, q2).reshape(-1)
-
-
-def measurement_branch(
-    state: np.ndarray, qubit: int, outcome: int, n: int
-) -> tuple[float, np.ndarray]:
-    tensor = state.reshape([2] * n)
-    mask = np.zeros([2] * n, dtype=bool)
-    selector: list[object] = [slice(None)] * n
-    selector[qubit] = outcome
-    mask[tuple(selector)] = True
-
-    projected = tensor.copy()
-    projected[~mask] = 0
-    probability = float(np.vdot(projected.reshape(-1), projected.reshape(-1)).real)
-
-    if probability > 1e-15:
-        projected /= np.sqrt(probability)
-
-    return probability, projected.reshape(-1)
-
-
-def reduced_density_pure(state: np.ndarray, keep: Iterable[int], n: int) -> np.ndarray:
-    keep = list(keep)
-    traced = [q for q in range(n) if q not in keep]
-    tensor = state.reshape([2] * n)
-    tensor = np.transpose(tensor, keep + traced)
-    matrix = tensor.reshape(2 ** len(keep), 2 ** len(traced))
-    return matrix @ matrix.conj().T
 
 
 def validate_quantum_computation(
