@@ -167,10 +167,11 @@ Tests compare both on the restricted input subspace `|psi,0,0>` and verify they
 produce the same routed output there. This does not claim the full unitaries are
 globally identical outside that subspace.
 
-CI style gates currently cover the modular package surface (`circuits.py`,
-`analysis.py`, `state_preparation.py`, `measurements.py`, `metrics.py`,
-`validation.py`, tests, examples). The original monolithic core file remains
-temporarily exempt pending decomposition migration.
+CI style gates currently cover the full active package surface, including the
+legacy compatibility facade `parameterized_fifth_wire_analysis.py`, alongside
+the modular analysis stack (`analysis.py`, `state_preparation.py`,
+`measurements.py`, `circuits.py`, `metrics.py`, `validation.py`), tests, and
+examples.
 
 ### Completed
 

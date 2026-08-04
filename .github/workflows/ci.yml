@@ -34,16 +34,11 @@ jobs:
 
       - name: Run formatting checks
         run: |
-          # Temporary exemption: src/quantum_reuse/parameterized_fifth_wire_analysis.py
-          # is tracked in issue-driven decomposition work and is intentionally
-          # excluded from black/flake8 gates until logic migration completes.
-          python -m black --target-version py39 --check src/quantum_reuse/circuits.py src/quantum_reuse/analysis.py src/quantum_reuse/cli.py src/quantum_reuse/measurements.py src/quantum_reuse/metrics.py src/quantum_reuse/state_preparation.py src/quantum_reuse/validation.py tests examples
+          python -m black --target-version py39 --check src/quantum_reuse/circuits.py src/quantum_reuse/analysis.py src/quantum_reuse/cli.py src/quantum_reuse/measurements.py src/quantum_reuse/metrics.py src/quantum_reuse/parameterized_fifth_wire_analysis.py src/quantum_reuse/state_preparation.py src/quantum_reuse/validation.py tests examples
 
       - name: Run lint checks
         run: |
-          # Temporary exemption: src/quantum_reuse/parameterized_fifth_wire_analysis.py
-          # remains out of lint gates until decomposition is complete.
-          python -m flake8 src/quantum_reuse/circuits.py src/quantum_reuse/analysis.py src/quantum_reuse/cli.py src/quantum_reuse/measurements.py src/quantum_reuse/metrics.py src/quantum_reuse/state_preparation.py src/quantum_reuse/validation.py tests examples
+          python -m flake8 src/quantum_reuse/circuits.py src/quantum_reuse/analysis.py src/quantum_reuse/cli.py src/quantum_reuse/measurements.py src/quantum_reuse/metrics.py src/quantum_reuse/parameterized_fifth_wire_analysis.py src/quantum_reuse/state_preparation.py src/quantum_reuse/validation.py tests examples
 
       - name: Run tests
         run: pytest -q
