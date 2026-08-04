@@ -23,6 +23,7 @@ permissions:
 
 jobs:
   sync:
+    environment: QRS
     if: ${{ secrets.AIRTABLE_TOKEN != '' && secrets.AIRTABLE_BASE_ID != '' && secrets.AIRTABLE_TABLE_NAME != '' }}
     runs-on: ubuntu-latest
     steps:
