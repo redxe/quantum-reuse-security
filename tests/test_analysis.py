@@ -2,8 +2,11 @@ import numpy as np
 
 from quantum_reuse.analysis import fixed_input_summary
 from quantum_reuse.measurements import enumerate_eve_branches
-from quantum_reuse.metrics import average_fifth_state, trace_distance
-from quantum_reuse.parameterized_fifth_wire_analysis import apply_swap
+from quantum_reuse.metrics import trace_distance
+from quantum_reuse.parameterized_fifth_wire_analysis import (
+    apply_swap,
+    average_fifth_state,
+)
 
 
 def test_branch_probabilities_sum_to_one() -> None:

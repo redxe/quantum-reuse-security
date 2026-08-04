@@ -4,8 +4,11 @@ from pathlib import Path
 
 import numpy as np
 
-from .parameterized_fifth_wire_analysis import run_analysis as _run_analysis
-from .metrics import average_fifth_state, trace_distance
+from .parameterized_fifth_wire_analysis import (
+    average_fifth_state,
+    run_analysis as _run_analysis,
+)
+from .metrics import trace_distance
 
 
 def fixed_input_summary() -> dict:
