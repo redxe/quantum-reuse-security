@@ -58,7 +58,7 @@ jobs:
           AIRTABLE_STATUS_CLOSED: Done
           AIRTABLE_FIELD_ISSUE_NUMBER: Issue Number
           AIRTABLE_FIELD_TITLE: Title
-          AIRTABLE_FIELD_STATUS: Status
+          AIRTABLE_FIELD_STATUS: ""
           AIRTABLE_FIELD_URL: GitHub Issue URL
           AIRTABLE_FIELD_LABELS: ""
           AIRTABLE_FIELD_ASSIGNEES: ""
