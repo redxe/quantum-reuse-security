@@ -29,7 +29,6 @@ NumPy, pandas, and matplotlib.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
 import argparse
 import json
@@ -40,25 +39,18 @@ import matplotlib.pyplot as plt
 
 from .circuits import H, apply_single, apply_swap, rz, ry
 from .metrics import binary_entropy, bloch_vector, fidelity_with_pure, trace_distance
-from .measurements import measurement_branch, reduced_density_pure
+from .measurements import (
+    BranchResult,
+    enumerate_eve_branches,
+    measurement_branch,
+    reduced_density_pure,
+)
+from .state_preparation import bb84_angles, prepare_advanced_state
 from .validation import (
     canonicalize_validation_summary,
     estimate_error_bounds,
     validate_density_matrix,
 )
-
-
-def bb84_angles(value: int, basis: int) -> tuple[float, float]:
-    """
-    Return theta, phi such that Rz(phi) Ry(theta) |0> prepares:
-      (v,b)=(0,0) -> |0>
-      (v,b)=(1,0) -> |1>
-      (v,b)=(0,1) -> |+>
-      (v,b)=(1,1) -> |->, up to global phase.
-    """
-    if basis == 0:
-        return (np.pi * value, 0.0)
-    return (np.pi / 2, np.pi * value)
 
 
 def validate_quantum_computation(
@@ -144,108 +136,6 @@ def validate_quantum_computation(
         validation_report["all_warnings"].extend(victim_val.warnings)
 
     return validation_report
-
-
-def prepare_advanced_state(value: int, basis: int) -> np.ndarray:
-    """
-    Five-wire ordering is |q0 q1 q2 q3 q4>.
-
-    q0: Alice value selector v
-    q1: Alice basis selector b
-    q2: Alice's original signal / Eve-side branch
-    q3: duplicate preparation routed to Bob
-    q4: clean workspace, later receives q2 via two SWAPs
-
-    For fixed v,b, the selector checkpoint is represented by setting q0 and q1
-    directly. There is no redundant second measurement checkpoint.
-    """
-    n = 5
-    bits = [value, basis, 0, 0, 0]
-    index = sum(bits[q] * 2 ** (n - 1 - q) for q in range(n))
-    state = np.zeros(2**n, dtype=complex)
-    state[index] = 1.0
-
-    theta, phi = bb84_angles(value, basis)
-    prep = rz(phi) @ ry(theta)
-
-    state = apply_single(state, prep, 2, n)
-    state = apply_single(state, prep, 3, n)
-    return state
-
-
-def expected_victim_state(value: int, basis: int) -> np.ndarray:
-    """
-    Expected q0..q3 state after routing but before Bob basis selection:
-    |v,b> tensor |psi(v,b)> tensor |0>.
-    """
-    n = 4
-    bits = [value, basis, 0, 0]
-    index = sum(bits[q] * 2 ** (n - 1 - q) for q in range(n))
-    state = np.zeros(2**n, dtype=complex)
-    state[index] = 1.0
-
-    theta, phi = bb84_angles(value, basis)
-    prep = rz(phi) @ ry(theta)
-    state = apply_single(state, prep, 2, n)
-    return state
-
-
-@dataclass
-class BranchResult:
-    value: int
-    basis: int
-    eve_basis: int
-    eve_result: int
-    branch_probability: float
-    fifth_rho: np.ndarray
-    victim_rho: np.ndarray
-    victim_fidelity: float
-    victim_trace_distance: float
-
-
-def enumerate_eve_branches(
-    value: int, basis: int, eve_basis: int
-) -> list[BranchResult]:
-    n = 5
-    state = prepare_advanced_state(value, basis)
-
-    # Eve measures q2 in Z (e=0) or X (e=1).
-    if eve_basis == 1:
-        state = apply_single(state, H, 2, n)
-
-    results: list[BranchResult] = []
-    target_victim = expected_victim_state(value, basis)
-    target_victim_rho = np.outer(target_victim, target_victim.conj())
-
-    for eve_result in (0, 1):
-        probability, branch = measurement_branch(state, 2, eve_result, n)
-        if probability < 1e-14:
-            continue
-
-        # Quirk routing:
-        #   SWAP(q3,q4), then SWAP(q2,q4)
-        # This maps semantic roles (q2,q3,q4) -> (q3,q4,q2).
-        branch = apply_swap(branch, 3, 4, n)
-        branch = apply_swap(branch, 2, 4, n)
-
-        fifth_rho = reduced_density_pure(branch, [4], n)
-        victim_rho = reduced_density_pure(branch, [0, 1, 2, 3], n)
-
-        results.append(
-            BranchResult(
-                value=value,
-                basis=basis,
-                eve_basis=eve_basis,
-                eve_result=eve_result,
-                branch_probability=probability,
-                fifth_rho=fifth_rho,
-                victim_rho=victim_rho,
-                victim_fidelity=fidelity_with_pure(victim_rho, target_victim),
-                victim_trace_distance=trace_distance(victim_rho, target_victim_rho),
-            )
-        )
-
-    return results
 
 
 def bob_probabilities(value: int, basis: int, bob_basis: int) -> tuple[float, float]:
