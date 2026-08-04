@@ -25,7 +25,7 @@ dev = [
   "flake8>=6.0"
 ]
 qiskit = [
-  "qiskit>=0.25.0"
+  "qiskit>=1.0.0"
 ]
 
 [project.urls]
