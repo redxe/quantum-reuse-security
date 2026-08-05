@@ -1,16 +1,17 @@
-"""Proof-of-concept malicious injection transformation (Issue #14).
+"""Liveness-aware malicious injection transformation (Issue #24).
 
 Demonstrates that a privileged agent with **use** access to the qubit register
 can achieve **retain** by inserting a CNOT coupling from a secret-carrying
 signal wire into an idle workspace qubit, while leaving the victim's observable
 output unchanged.
 
-This is a hard-coded statevector transformation on the five-wire NumPy model.
-It does not yet include an intermediate representation, liveness analysis,
-reclaimed-qubit discovery, or pass scheduling.  Those components belong in the
-next milestone (full liveness-aware circuit transformation).  See
-``docs/THREAT_MODEL.md`` §7 for the distinction between this constructive
-demonstration and the open formal bound.
+The transformation operates on a minimal executable circuit IR.  It uses
+liveness analysis to discover an unprotected qubit with no future gates after
+Alice's signal preparation, then inserts a CNOT payload at that point.  The
+five-wire example still identifies q4 as the available workspace, but the pass
+never selects q4 by a hard-coded target index.  See ``docs/THREAT_MODEL.md``
+§7 for the distinction between this constructive demonstration and the open
+formal bound.
 
 Qubit layout (big-endian, q0 = MSB)::
 
@@ -50,14 +51,15 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .circuits import apply_cnot
+from .circuit_ir import (
+    Circuit,
+    CircuitOperation,
+    identify_reclaimed_qubits,
+    inject_payload,
+)
 from .measurements import reduced_density_pure
 from .metrics import fidelity_with_pure, trace_distance
-from .state_preparation import (
-    bb84_angles,
-    prepare_advanced_state,
-    prepare_parametric_state,
-)
+from .state_preparation import bb84_angles
 
 # ── System constants ────────────────────────────────────────────────────────
 _N = 5  # Total qubits
@@ -65,7 +67,6 @@ _Q_VALUE = 0  # Alice's value selector
 _Q_BASIS = 1  # Alice's basis selector
 _Q_SIGNAL = 2  # Alice's signal wire (injection source)
 _Q_BOB = 3  # Bob's copy (victim output)
-_Q_ANCILLA = 4  # Reclaimed workspace (injection target)
 
 _PRESERVATION_TOL = 1e-10
 
@@ -109,25 +110,66 @@ class InjectionAnalysis:
     privilege_converted: str
 
 
-# ── Internal helpers ────────────────────────────────────────────────────────
+# ── Circuit construction and IR execution ──────────────────────────────────
 
 
-def _honest_state(value: int, basis: int) -> np.ndarray:
-    """Five-wire state after Alice's preparation, no injection."""
-    return prepare_advanced_state(value, basis)
+def _signal_preparation_operations(theta: float, phi: float) -> list[CircuitOperation]:
+    """Return the matched q2/q3 preparation gates used by the five-wire model."""
+    return [
+        CircuitOperation("ry", (_Q_SIGNAL,), theta),
+        CircuitOperation("rz", (_Q_SIGNAL,), phi),
+        CircuitOperation("ry", (_Q_BOB,), theta),
+        CircuitOperation("rz", (_Q_BOB,), phi),
+    ]
 
 
-def _injected_state(value: int, basis: int) -> np.ndarray:
-    """Five-wire state after Alice's preparation + CNOT(q2 → q4) injection."""
-    return apply_cnot(prepare_advanced_state(value, basis), _Q_SIGNAL, _Q_ANCILLA, _N)
+def _protected_protocol_qubits() -> frozenset[int]:
+    """Return wires whose completed state remains user-visible or secret-bearing."""
+    return frozenset({_Q_VALUE, _Q_BASIS, _Q_SIGNAL, _Q_BOB})
 
 
-def _honest_state_parametric(theta: float, phi: float) -> np.ndarray:
-    return prepare_parametric_state(theta, phi)
+def build_bb84_circuit(value: int, basis: int) -> Circuit:
+    """Build the honest five-wire BB84 preparation as executable IR.
+
+    The returned circuit leaves the fifth wire unprotected and untouched.  Its
+    lifetime is therefore discovered by :func:`identify_reclaimed_qubits`, not
+    encoded into the injection transformation.
+    """
+    if value not in (0, 1) or basis not in (0, 1):
+        raise ValueError("value and basis must each be 0 or 1")
+
+    theta, phi = bb84_angles(value, basis)
+    operations: list[CircuitOperation] = []
+    if value:
+        operations.append(CircuitOperation("x", (_Q_VALUE,)))
+    if basis:
+        operations.append(CircuitOperation("x", (_Q_BASIS,)))
+    operations.extend(_signal_preparation_operations(theta, phi))
+    return Circuit(_N, tuple(operations), _protected_protocol_qubits())
 
 
-def _injected_state_parametric(theta: float, phi: float) -> np.ndarray:
-    return apply_cnot(prepare_parametric_state(theta, phi), _Q_SIGNAL, _Q_ANCILLA, _N)
+def build_parametric_circuit(theta: float, phi: float) -> Circuit:
+    """Build the honest five-wire arbitrary-state preparation as executable IR."""
+    return Circuit(
+        _N,
+        tuple(_signal_preparation_operations(theta, phi)),
+        _protected_protocol_qubits(),
+    )
+
+
+def _statevectors_after_ir_injection(
+    circuit: Circuit,
+) -> tuple[np.ndarray, np.ndarray, int]:
+    """Execute honest and transformed IR statevectors and return payload target."""
+    injection_timestep = circuit.last_use(_Q_SIGNAL)
+    if injection_timestep is None:
+        raise RuntimeError("five-wire circuit is missing signal preparation")
+
+    injected_circuit = inject_payload(circuit, _Q_SIGNAL, injection_timestep)
+    payload = injected_circuit.operations[injection_timestep + 1]
+    if payload.kind != "cnot" or payload.qubits[0] != _Q_SIGNAL:
+        raise RuntimeError("payload pass did not insert the expected signal coupling")
+    return circuit.execute(), injected_circuit.execute(), payload.qubits[1]
 
 
 # ── Public API ───────────────────────────────────────────────────────────────
@@ -156,8 +198,8 @@ def analyze_injection(value: int, basis: int) -> InjectionAnalysis:
     target[0] = np.cos(theta / 2)
     target[1] = np.exp(1j * phi) * np.sin(theta / 2)
 
-    honest = _honest_state(value, basis)
-    injected = _injected_state(value, basis)
+    honest_circuit = build_bb84_circuit(value, basis)
+    honest, injected, ancilla_qubit = _statevectors_after_ir_injection(honest_circuit)
 
     victim_honest = reduced_density_pure(honest, [_Q_BOB], _N)
     victim_injected = reduced_density_pure(injected, [_Q_BOB], _N)
@@ -167,12 +209,18 @@ def analyze_injection(value: int, basis: int) -> InjectionAnalysis:
     victim_td = trace_distance(victim_honest, victim_injected)
     victim_preserved = victim_td < _PRESERVATION_TOL
 
-    ancilla_honest = reduced_density_pure(honest, [_Q_ANCILLA], _N)
-    ancilla_injected = reduced_density_pure(injected, [_Q_ANCILLA], _N)
+    ancilla_honest = reduced_density_pure(honest, [ancilla_qubit], _N)
+    ancilla_injected = reduced_density_pure(injected, [ancilla_qubit], _N)
 
     # Attacker advantage: TD between ancilla for v=0 and v=1 at same basis
-    anc_v0 = reduced_density_pure(_injected_state(0, basis), [_Q_ANCILLA], _N)
-    anc_v1 = reduced_density_pure(_injected_state(1, basis), [_Q_ANCILLA], _N)
+    _, injected_v0, ancilla_v0_qubit = _statevectors_after_ir_injection(
+        build_bb84_circuit(0, basis)
+    )
+    _, injected_v1, ancilla_v1_qubit = _statevectors_after_ir_injection(
+        build_bb84_circuit(1, basis)
+    )
+    anc_v0 = reduced_density_pure(injected_v0, [ancilla_v0_qubit], _N)
+    anc_v1 = reduced_density_pure(injected_v1, [ancilla_v1_qubit], _N)
     att_td = trace_distance(anc_v0, anc_v1)
 
     # Privilege label using use/read/retain/export vocabulary.
@@ -223,8 +271,8 @@ def analyze_injection_parametric(theta: float, phi: float) -> tuple[bool, float,
     target[0] = np.cos(theta / 2)
     target[1] = np.exp(1j * phi) * np.sin(theta / 2)
 
-    honest = _honest_state_parametric(theta, phi)
-    injected = _injected_state_parametric(theta, phi)
+    honest_circuit = build_parametric_circuit(theta, phi)
+    honest, injected, ancilla_qubit = _statevectors_after_ir_injection(honest_circuit)
 
     victim_honest = reduced_density_pure(honest, [_Q_BOB], _N)
     victim_injected = reduced_density_pure(injected, [_Q_BOB], _N)
@@ -233,7 +281,7 @@ def analyze_injection_parametric(theta: float, phi: float) -> tuple[bool, float,
     victim_td = trace_distance(victim_honest, victim_injected)
     victim_preserved = victim_td < _PRESERVATION_TOL
 
-    ancilla_injected = reduced_density_pure(injected, [_Q_ANCILLA], _N)
+    ancilla_injected = reduced_density_pure(injected, [ancilla_qubit], _N)
     zero_rho = np.array([[1, 0], [0, 0]], dtype=complex)
     att_td_to_zero = trace_distance(ancilla_injected, zero_rho)
 
@@ -241,7 +289,13 @@ def analyze_injection_parametric(theta: float, phi: float) -> tuple[bool, float,
 
 
 __all__ = [
+    "Circuit",
+    "CircuitOperation",
     "InjectionAnalysis",
     "analyze_injection",
     "analyze_injection_parametric",
+    "build_bb84_circuit",
+    "build_parametric_circuit",
+    "identify_reclaimed_qubits",
+    "inject_payload",
 ]

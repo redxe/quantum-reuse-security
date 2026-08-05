@@ -245,10 +245,16 @@ channel — none of which are modeled in the five-wire quantum circuit.
 - **Privilege at stake**: The adversary wants **read + retain**. The fifth-wire
   theorem shows these are not simultaneously achievable across all parameter
   settings for a single ancilla.
-- **Status**: ✅ **Prototype implemented** (`src/quantum_reuse/compiler_pass.py`,
-  `tests/test_compiler_pass.py`, 75 tests) — the CNOT(q_signal → q_ancilla)
-  injection is demonstrated for all four BB84 inputs and a parametric sweep
-  of 60 structured + 200 random pure-state inputs.
+- **Status**: ✅ **Liveness-aware prototype implemented**
+  (`src/quantum_reuse/circuit_ir.py`, `src/quantum_reuse/compiler_pass.py`,
+  `tests/test_compiler_pass.py`, and `tests/test_circuit_ir.py`) — the
+  executable gate-list IR reproduces the Issue #14 statevectors, and
+  `identify_reclaimed_qubits()` reports wires with no future gates at a chosen
+  timestep. `inject_payload()` then excludes protected protocol wires and
+  selects an eligible reclaimed workspace rather than accepting a hard-coded
+  target index. For the five-wire model it derives the same CNOT(q_signal →
+  q4) injection for all four BB84 inputs and the existing parametric sweep of
+  60 structured + 200 random pure-state inputs.
 
   Key prototype results:
   - **Victim preserved** in 100% of 260 tested inputs: `|ΔF| < 10⁻¹⁰`.
