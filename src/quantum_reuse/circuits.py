@@ -39,6 +39,21 @@ def apply_swap(state: np.ndarray, q1: int, q2: int, n: int) -> np.ndarray:
     return np.swapaxes(tensor, q1, q2).reshape(-1)
 
 
+def apply_cnot(state: np.ndarray, control: int, target: int, n: int) -> np.ndarray:
+    """Apply a CNOT gate: flips *target* qubit whenever *control* qubit is |1>.
+
+    Args:
+        state: State vector of length 2**n.
+        control: Control qubit index (big-endian: 0 = MSB).
+        target: Target qubit index.
+        n: Total number of qubits.
+
+    Returns:
+        New state vector after the CNOT.
+    """
+    return _apply_cnot(state, control, target, n)
+
+
 def _apply_cnot(state: np.ndarray, control: int, target: int, n: int) -> np.ndarray:
     out = np.zeros_like(state)
     for i, amp in enumerate(state):
@@ -145,6 +160,7 @@ __all__ = [
     "H",
     "I2",
     "X",
+    "apply_cnot",
     "apply_single",
     "apply_swap",
     "alternate_coherent_cleanup",

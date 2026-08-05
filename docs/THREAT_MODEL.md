@@ -245,9 +245,23 @@ channel — none of which are modeled in the five-wire quantum circuit.
 - **Privilege at stake**: The adversary wants **read + retain**. The fifth-wire
   theorem shows these are not simultaneously achievable across all parameter
   settings for a single ancilla.
-- **What is needed**: Formal adversarial model bounding the joint
-  **read + retain** advantage over all single-ancilla injection strategies;
-  connection to distinguishability bounds.
+- **Status**: ✅ **Prototype implemented** (`src/quantum_reuse/compiler_pass.py`,
+  `tests/test_compiler_pass.py`, 75 tests) — the CNOT(q_signal → q_ancilla)
+  injection is demonstrated for all four BB84 inputs and a parametric sweep
+  of 60 structured + 200 random pure-state inputs.
+
+  Key prototype results:
+  - **Victim preserved** in 100% of 260 tested inputs: `|ΔF| < 10⁻¹⁰`.
+  - **Z-basis retain**: injected ancilla = `|v⟩⟨v|`; attacker trace distance = 1.
+  - **X-basis retain**: injected ancilla = `I/2`; attacker trace distance = 0.
+    Without Alice's basis, the ancilla carries no value information.
+  - **Privilege label**: `use → retain` (Z-basis: `export_ready`; X-basis:
+    `mixed — no value info without basis`).
+
+  **What remains open**: the formal adversarial model bounding the joint
+  **read + retain** advantage over *all* single-ancilla injection strategies,
+  and the connection to distinguishability bounds. The prototype supplies the
+  constructive counterpart; the formal bound is Issue #14's remaining scope.
 
 ---
 

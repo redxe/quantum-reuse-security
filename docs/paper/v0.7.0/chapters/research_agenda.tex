@@ -61,14 +61,31 @@ not yet a complete compiler-level noninterference framework. The matrix in
 protected information, alternative routes, and mitigation annotations that the
 formal property must eventually cover.
 
+\subsection{Completed: malicious compiler prototype}
+
+A controlled proof-of-concept compiler transformation has been implemented in
+\texttt{src/quantum\_reuse/compiler\_pass.py}. The prototype inserts
+\texttt{CNOT}($q_{\mathrm{signal}} \to q_{\mathrm{ancilla}}$) after Alice's
+signal preparation and before any routing, demonstrating the \textbf{use}
+$\to$ \textbf{retain} privilege conversion for both BB84 and arbitrary
+pure-state inputs. Key results:
+\begin{itemize}
+  \item Victim preservation holds in 100\% of 260 tested inputs
+    ($|\Delta F| < 10^{-10}$).
+  \item $Z$-basis: injected ancilla = $\ket{v}\!\bra{v}$; attacker trace
+    distance from $v{=}0$ to $v{=}1$ equals 1 (perfect distinguishability).
+  \item $X$-basis: injected ancilla = $I/2$; attacker trace distance equals 0.
+    Without Alice's basis, the single ancilla carries no value information.
+\end{itemize}
+The formal adversarial model bounding the joint \textbf{read}~+~\textbf{retain}
+advantage over all single-ancilla injection strategies remains open (Issue~14).
+
 \subsection{Compiler prototype and hardware experiments}
 
-A controlled malicious-reuse prototype should then perform ordinary liveness
-analysis, identify reclaimed physical qubits, insert a benign synthetic payload,
-and evaluate stronger contracts and trap circuits. Hardware and noise studies
-should compare coherent cleanup, measurement-reset reuse, and fresh allocation,
-including routing, crosstalk, leakage, and calibration drift. All experiments
-should use synthetic secrets and authorized simulation or hardware.
+Hardware and noise studies should compare coherent cleanup, measurement-reset
+reuse, and fresh allocation, including routing, crosstalk, leakage, and
+calibration drift. All experiments should use synthetic secrets and authorized
+simulation or hardware.
 
 \subsection{Venue and audience}
 
