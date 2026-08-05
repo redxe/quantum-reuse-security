@@ -34,11 +34,11 @@ jobs:
 
       - name: Run formatting checks
         run: |
-          python -m black --target-version py39 --check src/quantum_reuse/circuits.py src/quantum_reuse/analysis.py src/quantum_reuse/cli.py src/quantum_reuse/measurements.py src/quantum_reuse/metrics.py src/quantum_reuse/parameterized_fifth_wire_analysis.py src/quantum_reuse/qiskit_backend.py src/quantum_reuse/state_preparation.py src/quantum_reuse/validation.py tests examples
+          python -m black --target-version py39 --check src/quantum_reuse/circuit_ir.py src/quantum_reuse/circuits.py src/quantum_reuse/compiler_pass.py src/quantum_reuse/analysis.py src/quantum_reuse/cli.py src/quantum_reuse/measurements.py src/quantum_reuse/metrics.py src/quantum_reuse/parameterized_fifth_wire_analysis.py src/quantum_reuse/qiskit_backend.py src/quantum_reuse/state_preparation.py src/quantum_reuse/validation.py tests examples
 
       - name: Run lint checks
         run: |
-          python -m flake8 src/quantum_reuse/circuits.py src/quantum_reuse/analysis.py src/quantum_reuse/cli.py src/quantum_reuse/measurements.py src/quantum_reuse/metrics.py src/quantum_reuse/parameterized_fifth_wire_analysis.py src/quantum_reuse/qiskit_backend.py src/quantum_reuse/state_preparation.py src/quantum_reuse/validation.py tests examples
+          python -m flake8 src/quantum_reuse/circuit_ir.py src/quantum_reuse/circuits.py src/quantum_reuse/compiler_pass.py src/quantum_reuse/analysis.py src/quantum_reuse/cli.py src/quantum_reuse/measurements.py src/quantum_reuse/metrics.py src/quantum_reuse/parameterized_fifth_wire_analysis.py src/quantum_reuse/qiskit_backend.py src/quantum_reuse/state_preparation.py src/quantum_reuse/validation.py tests examples
 
       - name: Run tests
         run: pytest -q
