@@ -124,27 +124,29 @@ def write_csv(path: Path, rows: list[dict]) -> None:
 
 
 def build_circuit_tex() -> str:
-    # A deliberately literal reconstruction. The two consecutive Measure
-    # columns in the baseline are retained. Controlled-H gates are drawn with
-    # the control connected to the H target. The two SWAP operations are placed
-    # in separate columns with a visual spacer so their lines cannot overlap.
+    # The raw CIRCUITS mapping retains the supplied export provenance. The
+    # manuscript rendering removes its redundant consecutive selector
+    # measurements, as documented in the corrected Alice checkpoint model.
+    # Controlled-H gates are drawn with the control connected to the H target.
+    # The two SWAP operations are placed in separate columns with a visual
+    # spacer so their lines cannot overlap.
     return r"""
 \begin{figure}[tbp]
 \centering
 \begin{adjustbox}{max width=\textwidth}
 \begin{quantikz}[row sep=0.34cm,column sep=0.30cm]
-\lstick{$q_0$} & \gate{H} & \meter{} & \meter{} & \ctrl{2} & \qw      & \slice[style={black,dashed},label style={black}]{Alice checkpoint} \qw & \qw      & \qw      & \qw       & \qw \\
-\lstick{$q_1$} & \gate{H} & \meter{} & \meter{} & \qw      & \ctrl{1} & \qw & \qw      & \qw      & \qw       & \qw \\
-\lstick{$q_2$} & \qw      & \qw      & \qw      & \targ{}  & \gate{H} & \qw & \qw      & \qw      & \gate{H}  & \meter{} \\
-\lstick{$q_3$} & \qw      & \qw      & \qw      & \qw      & \qw      & \qw & \gate{H} & \meter{} & \ctrl{-1} & \qw \\
-\lstick{$q_4$} & \qw      & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \qw       & \qw
+\lstick{$q_0$} & \gate{H} & \meter{} & \ctrl{2} & \qw      & \slice[style={black,dashed},label style={black}]{Alice checkpoint} \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_1$} & \gate{H} & \meter{} & \qw      & \ctrl{1} & \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_2$} & \qw      & \qw      & \targ{}  & \gate{H} & \qw & \qw      & \qw      & \gate{H}  & \meter{} \\
+\lstick{$q_3$} & \qw      & \qw      & \qw      & \qw      & \qw & \gate{H} & \meter{} & \ctrl{-1} & \qw \\
+\lstick{$q_4$} & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \qw       & \qw
 \end{quantikz}
 \end{adjustbox}
-\caption{Baseline circuit reconstructed literally from the supplied column
-array. The two consecutive measurements on $q_0$ and $q_1$ are both present in
-the export and are therefore both shown. The control on $q_1$ acts on a
-Hadamard target on $q_2$; later, the measured value on $q_3$ controls a second
-Hadamard on $q_2$. Display widgets and identity annotation blocks are omitted.}
+\caption{Corrected baseline circuit. One Alice measurement checkpoint remains
+after the initial Hadamards; the redundant consecutive checkpoint has been
+removed. The control on $q_1$ acts on a Hadamard target on $q_2$; later, the
+measured value on $q_3$ controls a second Hadamard on $q_2$. Display widgets and
+identity annotation blocks are omitted.}
 \label{fig:caseii-baseline-circuit}
 \end{figure}
 
@@ -171,18 +173,17 @@ $q_2$ controlled by $q_3$ is drawn explicitly near the end of the circuit.}
 \centering
 \begin{adjustbox}{max width=\textwidth}
 \begin{quantikz}[row sep=0.34cm,column sep=0.27cm]
-\lstick{$q_0$} & \gate{H} & \meter{} & \ctrl{3} & \qw      & \meter{} & \ctrl{2} & \qw      & \slice[style={black,dashed},label style={black}]{Alice} \qw & \qw      & \qw      & \qw      & \qw      & \qw      & \slice[style={black,dashed},label style={black}]{routing} \qw & \qw      & \qw      & \qw       & \qw \\
-\lstick{$q_1$} & \gate{H} & \meter{} & \qw      & \ctrl{2} & \meter{} & \qw      & \ctrl{1} & \qw & \qw      & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \qw       & \qw \\
-\lstick{$q_2$} & \qw      & \qw      & \qw      & \qw      & \qw      & \targ{}  & \gate{H} & \qw & \gate{H} & \meter{} & \qw      & \qw      & \swap{2} & \qw & \qw      & \qw      & \gate{H}  & \meter{} \\
-\lstick{$q_3$} & \qw      & \qw      & \targ{}  & \gate{H} & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \swap{1} & \qw      & \qw      & \qw & \gate{H} & \meter{} & \ctrl{-1} & \qw \\
-\lstick{$q_4$} & \qw      & \qw      & \qw      & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \targX{} & \qw      & \targX{} & \qw & \qw      & \qw      & \qw       & \qw
+\lstick{$q_0$} & \gate{H} & \meter{} & \ctrl{3} & \qw      & \ctrl{2} & \qw      & \slice[style={black,dashed},label style={black}]{Alice} \qw & \qw      & \qw      & \qw      & \qw      & \qw      & \slice[style={black,dashed},label style={black}]{routing} \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_1$} & \gate{H} & \meter{} & \qw      & \ctrl{2} & \qw      & \ctrl{1} & \qw & \qw      & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \qw       & \qw \\
+\lstick{$q_2$} & \qw      & \qw      & \qw      & \qw      & \targ{}  & \gate{H} & \qw & \gate{H} & \meter{} & \qw      & \qw      & \swap{2} & \qw & \qw      & \qw      & \gate{H}  & \meter{} \\
+\lstick{$q_3$} & \qw      & \qw      & \targ{}  & \gate{H} & \qw      & \qw      & \qw & \qw      & \qw      & \swap{1} & \qw      & \qw      & \qw & \gate{H} & \meter{} & \ctrl{-1} & \qw \\
+\lstick{$q_4$} & \qw      & \qw      & \qw      & \qw      & \qw      & \qw      & \qw & \qw      & \qw      & \targX{} & \qw      & \targX{} & \qw & \qw      & \qw      & \qw       & \qw
 \end{quantikz}
 \end{adjustbox}
-\caption{Advanced source-access circuit. Alice's measured selectors first
-control preparation operations on $q_3$, are measured again exactly as in the
-export, and then control a second preparation on $q_2$. The ordered SWAP pair is
-again drawn in separate columns. This figure represents the supplied gate
-order without using the original Quirk screenshot.}
+\caption{Corrected advanced source-access circuit. Alice's measured selectors
+control preparation operations on $q_3$ and then a second preparation on $q_2$;
+the redundant repeated selector measurement has been removed. The ordered SWAP
+pair remains in separate columns.}
 \label{fig:caseii-advanced-circuit}
 \end{figure}
 """

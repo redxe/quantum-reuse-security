@@ -29,3 +29,16 @@ Public repository: https://github.com/redxe/quantum-reuse-security
 ```bash
 latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 ```
+
+## Release-integrity policy
+
+`MANIFEST.txt` is the curated inventory for the complete release package. It
+includes the PDF and plot assets that continuous integration generates from the
+committed manuscript sources, scripts, and data. The generated PDF is uploaded
+as a CI artifact and preflighted structurally; it is not compared byte-for-byte
+because the TeX build does not yet control timestamps and PDF metadata.
+
+`SHA256SUMS.txt` covers every committed immutable package file except itself,
+using the repository's canonical line endings. Generated PDF and image assets
+are validated by the clean CI build and manifest check rather than treated as
+committed checksum inputs.

@@ -1,0 +1,231 @@
+name: Manuscript
+
+on:
+  push:
+    paths:
+      - "docs/paper/v0.7.0/main.tex"
+      - "docs/paper/v0.7.0/main.bbl"
+      - "docs/paper/v0.7.0/preamble.tex"
+      - "docs/paper/v0.7.0/references.bib"
+      - "docs/paper/v0.7.0/chapters/**"
+      - "docs/paper/v0.7.0/figures/**"
+      - "docs/paper/v0.7.0/data/**"
+      - "docs/paper/v0.7.0/src/**"
+      - "docs/paper/v0.7.0/MANIFEST.txt"
+      - "docs/paper/v0.7.0/SHA256SUMS.txt"
+      - "docs/paper/v0.7.0/README.md"
+      - "docs/paper/v0.7.0/RELEASE_NOTES_v0.7.0.md"
+      - "docs/paper/v0.7.0/REPO_PLACEMENT.md"
+      - ".github/workflows/manuscript.yml"
+  pull_request:
+    paths:
+      - "docs/paper/v0.7.0/main.tex"
+      - "docs/paper/v0.7.0/main.bbl"
+      - "docs/paper/v0.7.0/preamble.tex"
+      - "docs/paper/v0.7.0/references.bib"
+      - "docs/paper/v0.7.0/chapters/**"
+      - "docs/paper/v0.7.0/figures/**"
+      - "docs/paper/v0.7.0/data/**"
+      - "docs/paper/v0.7.0/src/**"
+      - "docs/paper/v0.7.0/MANIFEST.txt"
+      - "docs/paper/v0.7.0/SHA256SUMS.txt"
+      - "docs/paper/v0.7.0/README.md"
+      - "docs/paper/v0.7.0/RELEASE_NOTES_v0.7.0.md"
+      - "docs/paper/v0.7.0/REPO_PLACEMENT.md"
+      - ".github/workflows/manuscript.yml"
+
+permissions:
+  contents: read
+
+env:
+  MANUSCRIPT_SOURCE: docs/paper/v0.7.0
+  MANUSCRIPT_JOBNAME: Vi_Connelly_Known_State_Qubits_Research_Draft_v0_7
+
+jobs:
+  manuscript:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install manuscript toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            biber \
+            latexmk \
+            poppler-utils \
+            texlive-bibtex-extra \
+            texlive-fonts-recommended \
+            texlive-latex-extra \
+            texlive-pictures
+          python -m pip install --upgrade pip
+          python -m pip install numpy matplotlib
+
+      - name: Create clean manuscript build tree
+        run: |
+          build="$RUNNER_TEMP/manuscript-build"
+          rm -rf "$build"
+          mkdir -p "$(dirname "$build")"
+          cp -a "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE" "$build"
+
+      - name: Generate manuscript release assets
+        id: generate
+        working-directory: ${{ runner.temp }}/manuscript-build
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python src/simulate_case_studies.py 2>&1 | tee "$RUNNER_TEMP/manuscript-generate-case-studies.log"
+          python src/build_case_study_ii.py 2>&1 | tee "$RUNNER_TEMP/manuscript-generate-case-study-ii.log"
+
+      - name: Verify generated source records
+        id: generated_records
+        if: always()
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE/src/verify_release_package.py" \
+            --root "$RUNNER_TEMP/manuscript-build" \
+            --source-root "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE" \
+            --check-generated \
+            --records-only 2>&1 | tee "$RUNNER_TEMP/manuscript-generated-records.log"
+
+      - name: Run manuscript audit
+        id: audit
+        if: always()
+        continue-on-error: true
+        working-directory: ${{ runner.temp }}/manuscript-build
+        run: |
+          set -o pipefail
+          python src/audit_manuscript.py \
+            --output "$RUNNER_TEMP/manuscript-audit.generated.txt" \
+            2>&1 | tee "$RUNNER_TEMP/manuscript-audit.log"
+          diff -u \
+            "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE/data/manuscript_audit.txt" \
+            "$RUNNER_TEMP/manuscript-audit.generated.txt" \
+            | tee "$RUNNER_TEMP/manuscript-audit.diff"
+
+      - name: Build manuscript with latexmk
+        id: build
+        if: always()
+        working-directory: ${{ runner.temp }}/manuscript-build
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          latexmk -pdf -interaction=nonstopmode -halt-on-error \
+            -jobname="$MANUSCRIPT_JOBNAME" main.tex 2>&1 \
+            | tee "$RUNNER_TEMP/manuscript-latexmk.log"
+
+      - name: Scan final TeX log
+        id: scan
+        if: always()
+        continue-on-error: true
+        run: |
+          python - "$RUNNER_TEMP/manuscript-build/$MANUSCRIPT_JOBNAME.log" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          log_path = Path(sys.argv[1])
+          if not log_path.is_file():
+              raise SystemExit(f"final TeX log is missing: {log_path}")
+
+          text = log_path.read_text(encoding="utf-8", errors="replace")
+          patterns = {
+              "undefined references": r"LaTeX Warning: There were undefined references\\.",
+              "undefined citations": r"LaTeX Warning: Citation .+ undefined",
+              "duplicate labels": r"LaTeX Warning: Label .+ multiply defined",
+              "missing files": r"! LaTeX Error: File .+ not found\\.",
+          }
+          failures = [name for name, pattern in patterns.items() if re.search(pattern, text)]
+          if failures:
+              print("Final TeX log scan failed:")
+              for failure in failures:
+                  print(f"- {failure}")
+              raise SystemExit(1)
+          print("Final TeX log scan passed.")
+          PY
+
+      - name: Preflight compiled PDF
+        id: preflight
+        if: always()
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pdf="$RUNNER_TEMP/manuscript-build/$MANUSCRIPT_JOBNAME.pdf"
+          test -s "$pdf"
+          pdfinfo "$pdf" | tee "$RUNNER_TEMP/manuscript-pdfinfo.log"
+          pdffonts "$pdf" | tee "$RUNNER_TEMP/manuscript-pdffonts.log"
+          pages="$(pdfinfo "$pdf" | awk '/^Pages:/ {print $2}')"
+          test -n "$pages" && test "$pages" -gt 0
+
+      - name: Verify release manifest
+        id: manifest
+        if: always()
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE/src/verify_release_package.py" \
+            --root "$RUNNER_TEMP/manuscript-build" 2>&1 \
+            | tee "$RUNNER_TEMP/manuscript-inventory.log"
+
+      - name: Verify source checksums
+        id: checksums
+        if: always()
+        continue-on-error: true
+        working-directory: ${{ env.MANUSCRIPT_SOURCE }}
+        run: |
+          set -o pipefail
+          sha256sum -c SHA256SUMS.txt 2>&1 \
+            | tee "$RUNNER_TEMP/manuscript-checksums.log"
+
+      - name: Upload manuscript artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manuscript-release-artifacts
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/manuscript-build/${{ env.MANUSCRIPT_JOBNAME }}.pdf
+            ${{ runner.temp }}/manuscript-build/${{ env.MANUSCRIPT_JOBNAME }}.log
+            ${{ runner.temp }}/manuscript-generate-case-studies.log
+            ${{ runner.temp }}/manuscript-generate-case-study-ii.log
+            ${{ runner.temp }}/manuscript-generated-records.log
+            ${{ runner.temp }}/manuscript-audit.log
+            ${{ runner.temp }}/manuscript-audit.generated.txt
+            ${{ runner.temp }}/manuscript-audit.diff
+            ${{ runner.temp }}/manuscript-latexmk.log
+            ${{ runner.temp }}/manuscript-pdfinfo.log
+            ${{ runner.temp }}/manuscript-pdffonts.log
+            ${{ runner.temp }}/manuscript-inventory.log
+            ${{ runner.temp }}/manuscript-checksums.log
+
+      - name: Fail if validation steps failed
+        if: always()
+        run: |
+          failed=0
+          for step in generate generated_records audit build scan preflight manifest checksums; do
+            outcome="${{ steps.generate.outcome }}"
+            case "$step" in
+              generated_records) outcome="${{ steps.generated_records.outcome }}" ;;
+              audit) outcome="${{ steps.audit.outcome }}" ;;
+              build) outcome="${{ steps.build.outcome }}" ;;
+              scan) outcome="${{ steps.scan.outcome }}" ;;
+              preflight) outcome="${{ steps.preflight.outcome }}" ;;
+              manifest) outcome="${{ steps.manifest.outcome }}" ;;
+              checksums) outcome="${{ steps.checksums.outcome }}" ;;
+            esac
+            if [ "$outcome" != "success" ]; then
+              echo "Validation step failed: $step"
+              failed=1
+            fi
+          done
+          exit "$failed"
