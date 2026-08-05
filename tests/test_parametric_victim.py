@@ -76,9 +76,7 @@ def test_victim_preservation_random_sweep() -> None:
                         f"trace_distance={b.victim_trace_distance:.2e}"
                     )
 
-    assert (
-        not failures
-    ), f"{len(failures)} failures (showing first 5):\n" + "\n".join(
+    assert not failures, f"{len(failures)} failures (showing first 5):\n" + "\n".join(
         failures[:5]
     )
 

@@ -60,9 +60,9 @@ def test_z_basis_attacker_advantage_perfect() -> None:
     result_0 = analyze_injection(0, basis=0)
     result_1 = analyze_injection(1, basis=0)
     # Both should report TD = 1 (they compute the same cross-value comparison)
-    assert abs(result_0.attacker_trace_distance - 1.0) < _TOL, (
-        f"Z-basis attacker TD = {result_0.attacker_trace_distance:.6f}, expected 1"
-    )
+    assert (
+        abs(result_0.attacker_trace_distance - 1.0) < _TOL
+    ), f"Z-basis attacker TD = {result_0.attacker_trace_distance:.6f}, expected 1"
     assert abs(result_1.attacker_trace_distance - 1.0) < _TOL
 
 
