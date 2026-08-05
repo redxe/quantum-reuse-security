@@ -260,8 +260,10 @@ channel — none of which are modeled in the five-wire quantum circuit.
 
   **What remains open**: the formal adversarial model bounding the joint
   **read + retain** advantage over *all* single-ancilla injection strategies,
-  and the connection to distinguishability bounds. The prototype supplies the
-  constructive counterpart; the formal bound is Issue #14's remaining scope.
+  and the connection to distinguishability bounds, is tracked as
+  **Issue #23** ("Formalize optimal single-ancilla read-and-retain advantage").
+  Issue #14 is closed for the constructive demonstration; Issue #23 is the
+  open formal theorem.
 
 ---
 

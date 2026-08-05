@@ -1,43 +1,47 @@
-"""Prototype malicious qubit-reuse compiler transformation (Issue #14).
+"""Proof-of-concept malicious injection transformation (Issue #14).
 
-Models a compiler pass that holds **use** privilege over the qubit register
-and exploits that privilege to achieve **retain** by inserting a CNOT coupling
-from a secret-carrying signal wire into a reclaimed workspace qubit.
+Demonstrates that a privileged agent with **use** access to the qubit register
+can achieve **retain** by inserting a CNOT coupling from a secret-carrying
+signal wire into an idle workspace qubit, while leaving the victim's observable
+output unchanged.
 
-The prototype operates on the five-wire NumPy circuit model used throughout
-the package.  Qubit layout (big-endian, q0 = MSB):
+This is a hard-coded statevector transformation on the five-wire NumPy model.
+It does not yet include an intermediate representation, liveness analysis,
+reclaimed-qubit discovery, or pass scheduling.  Those components belong in the
+next milestone (full liveness-aware circuit transformation).  See
+``docs/THREAT_MODEL.md`` §7 for the distinction between this constructive
+demonstration and the open formal bound.
+
+Qubit layout (big-endian, q0 = MSB)::
 
     q0  Alice's value selector (classical bit, initialised from *value*)
     q1  Alice's basis selector (classical bit, initialised from *basis*)
     q2  Alice's signal wire — the injection *source*
     q3  Bob's duplicate signal wire — the *victim* observable
-    q4  Reclaimed workspace qubit — the injection *target* (ancilla)
+    q4  Idle workspace qubit — the injection *target* (ancilla)
 
 Injection point
 ---------------
 The malicious CNOT(q2 → q4) is inserted after Alice's signal preparation and
-before any routing or measurement.  This corresponds to a compiler pass that
-finds q4 idle (no future legitimate gates) and couples it to the signal wire
-before q4 is nominally reclaimed or reset.
+before any routing or measurement.  Because q3 is a structurally separate wire,
+q3 preservation is guaranteed by disjointness.  The honest-vs-injected
+equivalence is verified explicitly via trace distance rather than relying on
+this structural argument.
 
 Key results
 -----------
-- Victim (q3) reduced state is IDENTICAL in honest and injected circuits:
-  the CNOT on a disjoint qubit does not affect q3.  Privilege conversion
-  therefore passes the victim-preservation check in every case.
-- Attacker advantage (trace distance between injected ancilla states for
-  v=0 vs v=1) equals 1 for Z-basis and 0 for X-basis, matching the no-cloning
-  structure: without Alice's basis, the ancilla carries no value information for
-  X-prepared states.
-- The privilege conversion is ``use → retain``.  Export would require routing
-  q4 to an output channel, which is a separate, detectable step.
-
-Scientific scope
-----------------
-This prototype demonstrates the mechanism for the fixed BB84 inputs and a
-parameterised sweep.  It does *not* bound the maximum attacker advantage over
-all single-ancilla injection strategies; that formal result (Issue #13/#14) is
-separate.
+- Victim (q3) trace distance between honest and injected states is 0 for all
+  tested inputs.  ``victim_preserved`` uses this direct state comparison as the
+  equivalence criterion; target fidelities are kept as supporting diagnostics.
+- Z-basis: injected ancilla = ``|v><v|``; attacker trace distance between
+  v=0 and v=1 ancilla states = 1 (perfect retain of Alice's value).
+  Label: ``use -> retain(v); export not modeled``.
+- X-basis: injected ancilla = ``I/2``; attacker trace distance = 0.
+  The ancilla carries no value information without Alice's basis.
+  Label: ``use only; no retain(v)``.
+- Export privilege is not present in this prototype: no output channel for q4
+  exists.  The Z-basis result shows q4 *could* be exported, but that step
+  is not modelled here.
 """
 
 from __future__ import annotations
@@ -75,22 +79,27 @@ class InjectionAnalysis:
     Attributes:
         value: Alice's bit value (0 or 1).
         basis: Alice's encoding basis (0 = Z, 1 = X).
+        victim_trace_distance: Trace distance between the honest and injected
+            victim reduced states.  Primary equivalence criterion for
+            ``victim_preserved``.
         victim_fidelity_honest: Fidelity of Bob's reduced state with the
-            expected pure state in the honest (non-injected) circuit.
+            expected pure state in the honest circuit.  Supporting diagnostic.
         victim_fidelity_injected: Same fidelity after injection.
-        victim_preserved: True when the injection does not disturb Bob's
-            reduced state above ``_PRESERVATION_TOL``.
+            Supporting diagnostic.
+        victim_preserved: True when ``victim_trace_distance < _PRESERVATION_TOL``.
         ancilla_rho_honest: 2×2 reduced density matrix of q4 in the honest
             circuit.  Equals |0><0| because q4 is never touched.
         ancilla_rho_injected: 2×2 reduced density matrix of q4 after the
-            malicious CNOT.  Carries a copy of Alice's signal.
-        attacker_trace_distance: Trace distance between the ancilla states for
-            v=0 and v=1 at this basis.  Quantifies the attacker's advantage.
-        privilege_converted: Human-readable privilege label for this case.
+            malicious CNOT.
+        attacker_trace_distance: Trace distance between injected ancilla states
+            for v=0 and v=1 at this basis.
+        privilege_converted: Privilege label using use/read/retain/export
+            vocabulary.
     """
 
     value: int
     basis: int
+    victim_trace_distance: float
     victim_fidelity_honest: float
     victim_fidelity_injected: float
     victim_preserved: bool
@@ -155,7 +164,8 @@ def analyze_injection(value: int, basis: int) -> InjectionAnalysis:
 
     fid_honest = fidelity_with_pure(victim_honest, target)
     fid_injected = fidelity_with_pure(victim_injected, target)
-    victim_preserved = abs(fid_injected - fid_honest) < _PRESERVATION_TOL
+    victim_td = trace_distance(victim_honest, victim_injected)
+    victim_preserved = victim_td < _PRESERVATION_TOL
 
     ancilla_honest = reduced_density_pure(honest, [_Q_ANCILLA], _N)
     ancilla_injected = reduced_density_pure(injected, [_Q_ANCILLA], _N)
@@ -165,16 +175,18 @@ def analyze_injection(value: int, basis: int) -> InjectionAnalysis:
     anc_v1 = reduced_density_pure(_injected_state(1, basis), [_Q_ANCILLA], _N)
     att_td = trace_distance(anc_v0, anc_v1)
 
-    # Privilege label: retain iff ancilla carries information; export_ready if
-    # TD > 0 (attacker can gain advantage by measuring the ancilla).
+    # Privilege label using use/read/retain/export vocabulary.
+    # retain(v) requires the ancilla to carry distinguishable information about v.
+    # export is not present in this prototype (no output channel for q4).
     if att_td > _PRESERVATION_TOL:
-        priv = "use -> retain (export_ready)"
+        priv = "use -> retain(v); export not modeled"
     else:
-        priv = "use -> retain (mixed; no value info without basis)"
+        priv = "use only; no retain(v)"
 
     return InjectionAnalysis(
         value=value,
         basis=basis,
+        victim_trace_distance=victim_td,
         victim_fidelity_honest=fid_honest,
         victim_fidelity_injected=fid_injected,
         victim_preserved=victim_preserved,
@@ -217,9 +229,9 @@ def analyze_injection_parametric(theta: float, phi: float) -> tuple[bool, float,
     victim_honest = reduced_density_pure(honest, [_Q_BOB], _N)
     victim_injected = reduced_density_pure(injected, [_Q_BOB], _N)
 
-    fid_honest = fidelity_with_pure(victim_honest, target)
     fid_injected = fidelity_with_pure(victim_injected, target)
-    victim_preserved = abs(fid_injected - fid_honest) < _PRESERVATION_TOL
+    victim_td = trace_distance(victim_honest, victim_injected)
+    victim_preserved = victim_td < _PRESERVATION_TOL
 
     ancilla_injected = reduced_density_pure(injected, [_Q_ANCILLA], _N)
     zero_rho = np.array([[1, 0], [0, 0]], dtype=complex)

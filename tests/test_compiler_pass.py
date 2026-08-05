@@ -28,8 +28,19 @@ _BB84 = [(v, b) for v in (0, 1) for b in (0, 1)]
 
 
 @pytest.mark.parametrize("value,basis", _BB84)
+def test_victim_preserved_uses_trace_distance(value, basis) -> None:
+    """victim_preserved must be based on direct state TD, not fidelity difference."""
+    result = analyze_injection(value, basis)
+    assert result.victim_trace_distance < _TOL, (
+        f"v={value} b={basis}: victim TD honest-vs-injected = "
+        f"{result.victim_trace_distance:.2e}"
+    )
+    assert result.victim_preserved
+
+
+@pytest.mark.parametrize("value,basis", _BB84)
 def test_victim_preserved_after_injection(value, basis) -> None:
-    """CNOT(q2→q4) must not disturb Bob's signal qubit (q3) for any BB84 input."""
+    """CNOT(q2\u2192q4) must not disturb Bob's signal qubit (q3) for any BB84 input."""
     result = analyze_injection(value, basis)
     assert result.victim_preserved, (
         f"v={value} b={basis}: victim fidelity "
@@ -102,17 +113,17 @@ def test_x_basis_ancilla_is_maximally_mixed() -> None:
 
 
 def test_privilege_label_z_basis() -> None:
-    """Z-basis: privilege label should indicate export_ready."""
+    """Z-basis: label must say retain(v) and note export is not modeled."""
     result = analyze_injection(0, basis=0)
-    assert "retain" in result.privilege_converted
-    assert "export_ready" in result.privilege_converted
+    assert "retain(v)" in result.privilege_converted
+    assert "export not modeled" in result.privilege_converted
 
 
 def test_privilege_label_x_basis() -> None:
-    """X-basis: privilege label should indicate mixed / no value info."""
+    """X-basis: label must say 'use only; no retain(v)'."""
     result = analyze_injection(0, basis=1)
-    assert "retain" in result.privilege_converted
-    assert "mixed" in result.privilege_converted
+    assert "use only" in result.privilege_converted
+    assert "no retain(v)" in result.privilege_converted
 
 
 # ── Parametric sweep ────────────────────────────────────────────────────────
