@@ -3,15 +3,44 @@ name: Manuscript
 on:
   push:
     paths:
-      - docs/paper/v0.7.0/**
-      - .github/workflows/manuscript.yml
+      - "docs/paper/v0.7.0/main.tex"
+      - "docs/paper/v0.7.0/main.bbl"
+      - "docs/paper/v0.7.0/preamble.tex"
+      - "docs/paper/v0.7.0/references.bib"
+      - "docs/paper/v0.7.0/chapters/**"
+      - "docs/paper/v0.7.0/figures/**"
+      - "docs/paper/v0.7.0/data/**"
+      - "docs/paper/v0.7.0/src/**"
+      - "docs/paper/v0.7.0/MANIFEST.txt"
+      - "docs/paper/v0.7.0/SHA256SUMS.txt"
+      - "docs/paper/v0.7.0/README.md"
+      - "docs/paper/v0.7.0/RELEASE_NOTES_v0.7.0.md"
+      - "docs/paper/v0.7.0/REPO_PLACEMENT.md"
+      - ".github/workflows/manuscript.yml"
   pull_request:
     paths:
-      - docs/paper/v0.7.0/**
-      - .github/workflows/manuscript.yml
+      - "docs/paper/v0.7.0/main.tex"
+      - "docs/paper/v0.7.0/main.bbl"
+      - "docs/paper/v0.7.0/preamble.tex"
+      - "docs/paper/v0.7.0/references.bib"
+      - "docs/paper/v0.7.0/chapters/**"
+      - "docs/paper/v0.7.0/figures/**"
+      - "docs/paper/v0.7.0/data/**"
+      - "docs/paper/v0.7.0/src/**"
+      - "docs/paper/v0.7.0/MANIFEST.txt"
+      - "docs/paper/v0.7.0/SHA256SUMS.txt"
+      - "docs/paper/v0.7.0/README.md"
+      - "docs/paper/v0.7.0/RELEASE_NOTES_v0.7.0.md"
+      - "docs/paper/v0.7.0/REPO_PLACEMENT.md"
+      - ".github/workflows/manuscript.yml"
 
 permissions:
   contents: read
+
+env:
+  MANUSCRIPT_SOURCE: docs/paper/v0.7.0
+  MANUSCRIPT_BUILD: ${{ runner.temp }}/manuscript-build
+  MANUSCRIPT_JOBNAME: Vi_Connelly_Known_State_Qubits_Research_Draft_v0_7
 
 jobs:
   manuscript:
@@ -28,150 +57,175 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install TeX toolchain
+      - name: Install manuscript toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y latexmk texlive-latex-extra texlive-bibtex-extra texlive-fonts-recommended biber
+          sudo apt-get install -y \
+            biber \
+            latexmk \
+            poppler-utils \
+            texlive-bibtex-extra \
+            texlive-fonts-recommended \
+            texlive-latex-extra \
+            texlive-pictures
+          python -m pip install --upgrade pip
+          python -m pip install numpy matplotlib
 
-      - name: Build manuscript with latexmk
-        id: build
-        working-directory: docs/paper/v0.7.0
+      - name: Create clean manuscript build tree
+        run: |
+          rm -rf "$MANUSCRIPT_BUILD"
+          mkdir -p "$(dirname "$MANUSCRIPT_BUILD")"
+          cp -a "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE" "$MANUSCRIPT_BUILD"
+
+      - name: Generate manuscript release assets
+        id: generate
+        working-directory: ${{ env.MANUSCRIPT_BUILD }}
         continue-on-error: true
         run: |
-          latexmk -pdf -interaction=nonstopmode -halt-on-error -jobname=Vi_Connelly_Known_State_Qubits_Research_Draft_v0_7 main.tex 2>&1 | tee "$RUNNER_TEMP/manuscript-latexmk.log"
+          set -o pipefail
+          python src/simulate_case_studies.py 2>&1 | tee "$RUNNER_TEMP/manuscript-generate-case-studies.log"
+          python src/build_case_study_ii.py 2>&1 | tee "$RUNNER_TEMP/manuscript-generate-case-study-ii.log"
 
-      - name: Scan TeX build log
-        id: scan
+      - name: Verify generated source records
+        id: generated_records
         if: always()
         continue-on-error: true
         run: |
-          python - <<'PY'
-          import os
-          import re
-          from pathlib import Path
-          import sys
-
-          log_path = Path(os.environ["RUNNER_TEMP"]) / "manuscript-latexmk.log"
-          text = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
-
-          patterns = {
-              "undefined references": re.compile(r"undefined references", re.I),
-              "undefined citations": re.compile(r"undefined citations|citation.*undefined", re.I),
-              "duplicate labels": re.compile(r"multiply-defined labels|duplicate label", re.I),
-              "missing files": re.compile(r"file not found|no file|cannot find file", re.I),
-          }
-
-          failures = [name for name, pattern in patterns.items() if pattern.search(text)]
-          if failures:
-              print("TeX log scan failed:")
-              for item in failures:
-                  print(f"- {item}")
-              sys.exit(1)
-
-          print("TeX log scan passed.")
-          PY
+          set -o pipefail
+          python "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE/src/verify_release_package.py" \
+            --root "$MANUSCRIPT_BUILD" \
+            --source-root "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE" \
+            --check-generated \
+            --records-only 2>&1 | tee "$RUNNER_TEMP/manuscript-generated-records.log"
 
       - name: Run manuscript audit
         id: audit
         if: always()
         continue-on-error: true
-        working-directory: docs/paper/v0.7.0
+        working-directory: ${{ env.MANUSCRIPT_BUILD }}
         run: |
-          cp data/manuscript_audit.txt "$RUNNER_TEMP/manuscript-audit.committed.txt"
-          python src/audit_manuscript.py > "$RUNNER_TEMP/manuscript-audit.generated.txt"
-          diff -u "$RUNNER_TEMP/manuscript-audit.committed.txt" data/manuscript_audit.txt > "$RUNNER_TEMP/manuscript-audit.diff"
+          set -o pipefail
+          python src/audit_manuscript.py \
+            --output "$RUNNER_TEMP/manuscript-audit.generated.txt" \
+            2>&1 | tee "$RUNNER_TEMP/manuscript-audit.log"
+          diff -u \
+            "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE/data/manuscript_audit.txt" \
+            "$RUNNER_TEMP/manuscript-audit.generated.txt" \
+            | tee "$RUNNER_TEMP/manuscript-audit.diff"
 
-      - name: Verify manifest inventory
+      - name: Build manuscript with latexmk
+        id: build
+        if: always()
+        working-directory: ${{ env.MANUSCRIPT_BUILD }}
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          latexmk -pdf -interaction=nonstopmode -halt-on-error \
+            -jobname="$MANUSCRIPT_JOBNAME" main.tex 2>&1 \
+            | tee "$RUNNER_TEMP/manuscript-latexmk.log"
+
+      - name: Scan final TeX log
+        id: scan
+        if: always()
+        continue-on-error: true
+        run: |
+          python - "$MANUSCRIPT_BUILD/$MANUSCRIPT_JOBNAME.log" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          log_path = Path(sys.argv[1])
+          if not log_path.is_file():
+              raise SystemExit(f"final TeX log is missing: {log_path}")
+
+          text = log_path.read_text(encoding="utf-8", errors="replace")
+          patterns = {
+              "undefined references": r"LaTeX Warning: There were undefined references\\.",
+              "undefined citations": r"LaTeX Warning: Citation .+ undefined",
+              "duplicate labels": r"LaTeX Warning: Label .+ multiply defined",
+              "missing files": r"! LaTeX Error: File .+ not found\\.",
+          }
+          failures = [name for name, pattern in patterns.items() if re.search(pattern, text)]
+          if failures:
+              print("Final TeX log scan failed:")
+              for failure in failures:
+                  print(f"- {failure}")
+              raise SystemExit(1)
+          print("Final TeX log scan passed.")
+          PY
+
+      - name: Preflight compiled PDF
+        id: preflight
+        if: always()
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pdf="$MANUSCRIPT_BUILD/$MANUSCRIPT_JOBNAME.pdf"
+          test -s "$pdf"
+          pdfinfo "$pdf" | tee "$RUNNER_TEMP/manuscript-pdfinfo.log"
+          pdffonts "$pdf" | tee "$RUNNER_TEMP/manuscript-pdffonts.log"
+          pages="$(pdfinfo "$pdf" | awk '/^Pages:/ {print $2}')"
+          test -n "$pages" && test "$pages" -gt 0
+
+      - name: Verify release manifest
         id: manifest
         if: always()
         continue-on-error: true
         run: |
-          python - <<'PY'
-          import os
-          import subprocess
-          from pathlib import Path
-          import sys
+          set -o pipefail
+          python "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE/src/verify_release_package.py" \
+            --root "$MANUSCRIPT_BUILD" 2>&1 \
+            | tee "$RUNNER_TEMP/manuscript-inventory.log"
 
-          root = Path("docs/paper/v0.7.0")
-          manifest_entries = [
-              line.strip()
-              for line in (root / "MANIFEST.txt").read_text(encoding="utf-8").splitlines()
-              if line.strip()
-          ]
-          tracked_entries = subprocess.check_output(
-              ["git", "ls-files", "docs/paper/v0.7.0"],
-              text=True,
-          ).splitlines()
-            excluded = {"MANIFEST.txt", "SHA256SUMS.txt"}
-            expected_entries = [
-              Path(path).relative_to(root).as_posix()
-              for path in tracked_entries
-              if Path(path).relative_to(root).as_posix() not in excluded
-            ]
-
-          missing = sorted(set(expected_entries) - set(manifest_entries))
-          extra = sorted(set(manifest_entries) - set(expected_entries))
-
-          report = ["Manifest inventory verification:"]
-          if missing or extra:
-              report.append("mismatch")
-              for item in missing:
-                  report.append(f"- missing from manifest: {item}")
-              for item in extra:
-                  report.append(f"- extra in manifest: {item}")
-              (Path(os.environ["RUNNER_TEMP"]) / "manuscript-inventory.log").write_text("\n".join(report) + "\n", encoding="utf-8")
-              print("\n".join(report))
-              sys.exit(1)
-
-          report.append("match")
-          (Path(os.environ["RUNNER_TEMP"]) / "manuscript-inventory.log").write_text("\n".join(report) + "\n", encoding="utf-8")
-          print("\n".join(report))
-          PY
-
-      - name: Verify checksums
+      - name: Verify source checksums
         id: checksums
         if: always()
         continue-on-error: true
-        working-directory: docs/paper/v0.7.0
+        working-directory: ${{ env.MANUSCRIPT_SOURCE }}
         run: |
-          sha256sum -c SHA256SUMS.txt | tee "$RUNNER_TEMP/manuscript-checksums.log"
+          set -o pipefail
+          sha256sum -c SHA256SUMS.txt 2>&1 \
+            | tee "$RUNNER_TEMP/manuscript-checksums.log"
 
       - name: Upload manuscript artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: manuscript-release-artifacts
-          if-no-files-found: ignore
+          if-no-files-found: warn
           path: |
-            docs/paper/v0.7.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_7.pdf
-            docs/paper/v0.7.0/Vi_Connelly_Known_State_Qubits_Research_Draft_v0_7.log
-            ${{ runner.temp }}/manuscript-latexmk.log
-            ${{ runner.temp }}/manuscript-audit.committed.txt
+            ${{ env.MANUSCRIPT_BUILD }}/${{ env.MANUSCRIPT_JOBNAME }}.pdf
+            ${{ env.MANUSCRIPT_BUILD }}/${{ env.MANUSCRIPT_JOBNAME }}.log
+            ${{ runner.temp }}/manuscript-generate-case-studies.log
+            ${{ runner.temp }}/manuscript-generate-case-study-ii.log
+            ${{ runner.temp }}/manuscript-generated-records.log
+            ${{ runner.temp }}/manuscript-audit.log
             ${{ runner.temp }}/manuscript-audit.generated.txt
             ${{ runner.temp }}/manuscript-audit.diff
+            ${{ runner.temp }}/manuscript-latexmk.log
+            ${{ runner.temp }}/manuscript-pdfinfo.log
+            ${{ runner.temp }}/manuscript-pdffonts.log
             ${{ runner.temp }}/manuscript-inventory.log
             ${{ runner.temp }}/manuscript-checksums.log
 
       - name: Fail if validation steps failed
         if: always()
         run: |
-          if [ "${{ steps.build.outcome }}" != "success" ]; then
-            echo "Manuscript build failed."
-            exit 1
-          fi
-          if [ "${{ steps.scan.outcome }}" != "success" ]; then
-            echo "TeX log scan failed."
-            exit 1
-          fi
-          if [ "${{ steps.audit.outcome }}" != "success" ]; then
-            echo "Manuscript audit drift or failure detected."
-            exit 1
-          fi
-          if [ "${{ steps.manifest.outcome }}" != "success" ]; then
-            echo "Manifest inventory verification failed."
-            exit 1
-          fi
-          if [ "${{ steps.checksums.outcome }}" != "success" ]; then
-            echo "Checksum verification failed."
-            exit 1
-          fi
+          failed=0
+          for step in generate generated_records audit build scan preflight manifest checksums; do
+            outcome="${{ steps.generate.outcome }}"
+            case "$step" in
+              generated_records) outcome="${{ steps.generated_records.outcome }}" ;;
+              audit) outcome="${{ steps.audit.outcome }}" ;;
+              build) outcome="${{ steps.build.outcome }}" ;;
+              scan) outcome="${{ steps.scan.outcome }}" ;;
+              preflight) outcome="${{ steps.preflight.outcome }}" ;;
+              manifest) outcome="${{ steps.manifest.outcome }}" ;;
+              checksums) outcome="${{ steps.checksums.outcome }}" ;;
+            esac
+            if [ "$outcome" != "success" ]; then
+              echo "Validation step failed: $step"
+              failed=1
+            fi
+          done
+          exit "$failed"

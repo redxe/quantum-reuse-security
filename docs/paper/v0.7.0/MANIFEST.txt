@@ -51,7 +51,6 @@ figures/case_study_ii_density_matrices.tex
 figures/case_study_ii_probability_densities.tex
 figures/classical_quantum_leakage_boundary.pdf
 figures/classical_quantum_leakage_boundary.png
-figures/security_capability_matrix_preview_v0_7.png
 main.bbl
 main.tex
 preamble.tex
@@ -60,3 +59,4 @@ src/audit_manuscript.py
 src/build_case_study_ii.py
 src/parameterized_fifth_wire_analysis.py
 src/simulate_case_studies.py
+src/verify_release_package.py
