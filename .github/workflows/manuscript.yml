@@ -39,7 +39,6 @@ permissions:
 
 env:
   MANUSCRIPT_SOURCE: docs/paper/v0.7.0
-  MANUSCRIPT_BUILD: ${{ runner.temp }}/manuscript-build
   MANUSCRIPT_JOBNAME: Vi_Connelly_Known_State_Qubits_Research_Draft_v0_7
 
 jobs:
@@ -73,13 +72,14 @@ jobs:
 
       - name: Create clean manuscript build tree
         run: |
-          rm -rf "$MANUSCRIPT_BUILD"
-          mkdir -p "$(dirname "$MANUSCRIPT_BUILD")"
-          cp -a "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE" "$MANUSCRIPT_BUILD"
+          build="$RUNNER_TEMP/manuscript-build"
+          rm -rf "$build"
+          mkdir -p "$(dirname "$build")"
+          cp -a "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE" "$build"
 
       - name: Generate manuscript release assets
         id: generate
-        working-directory: ${{ env.MANUSCRIPT_BUILD }}
+        working-directory: ${{ runner.temp }}/manuscript-build
         continue-on-error: true
         run: |
           set -o pipefail
@@ -93,7 +93,7 @@ jobs:
         run: |
           set -o pipefail
           python "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE/src/verify_release_package.py" \
-            --root "$MANUSCRIPT_BUILD" \
+            --root "$RUNNER_TEMP/manuscript-build" \
             --source-root "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE" \
             --check-generated \
             --records-only 2>&1 | tee "$RUNNER_TEMP/manuscript-generated-records.log"
@@ -102,7 +102,7 @@ jobs:
         id: audit
         if: always()
         continue-on-error: true
-        working-directory: ${{ env.MANUSCRIPT_BUILD }}
+        working-directory: ${{ runner.temp }}/manuscript-build
         run: |
           set -o pipefail
           python src/audit_manuscript.py \
@@ -116,7 +116,7 @@ jobs:
       - name: Build manuscript with latexmk
         id: build
         if: always()
-        working-directory: ${{ env.MANUSCRIPT_BUILD }}
+        working-directory: ${{ runner.temp }}/manuscript-build
         continue-on-error: true
         run: |
           set -o pipefail
@@ -129,7 +129,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          python - "$MANUSCRIPT_BUILD/$MANUSCRIPT_JOBNAME.log" <<'PY'
+          python - "$RUNNER_TEMP/manuscript-build/$MANUSCRIPT_JOBNAME.log" <<'PY'
           import re
           import sys
           from pathlib import Path
@@ -160,7 +160,7 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          pdf="$MANUSCRIPT_BUILD/$MANUSCRIPT_JOBNAME.pdf"
+          pdf="$RUNNER_TEMP/manuscript-build/$MANUSCRIPT_JOBNAME.pdf"
           test -s "$pdf"
           pdfinfo "$pdf" | tee "$RUNNER_TEMP/manuscript-pdfinfo.log"
           pdffonts "$pdf" | tee "$RUNNER_TEMP/manuscript-pdffonts.log"
@@ -174,7 +174,7 @@ jobs:
         run: |
           set -o pipefail
           python "$GITHUB_WORKSPACE/$MANUSCRIPT_SOURCE/src/verify_release_package.py" \
-            --root "$MANUSCRIPT_BUILD" 2>&1 \
+            --root "$RUNNER_TEMP/manuscript-build" 2>&1 \
             | tee "$RUNNER_TEMP/manuscript-inventory.log"
 
       - name: Verify source checksums
@@ -194,8 +194,8 @@ jobs:
           name: manuscript-release-artifacts
           if-no-files-found: warn
           path: |
-            ${{ env.MANUSCRIPT_BUILD }}/${{ env.MANUSCRIPT_JOBNAME }}.pdf
-            ${{ env.MANUSCRIPT_BUILD }}/${{ env.MANUSCRIPT_JOBNAME }}.log
+            ${{ runner.temp }}/manuscript-build/${{ env.MANUSCRIPT_JOBNAME }}.pdf
+            ${{ runner.temp }}/manuscript-build/${{ env.MANUSCRIPT_JOBNAME }}.log
             ${{ runner.temp }}/manuscript-generate-case-studies.log
             ${{ runner.temp }}/manuscript-generate-case-study-ii.log
             ${{ runner.temp }}/manuscript-generated-records.log
