@@ -102,7 +102,12 @@ jobs:
               ["git", "ls-files", "docs/paper/v0.7.0"],
               text=True,
           ).splitlines()
-          expected_entries = [Path(path).relative_to(root).as_posix() for path in tracked_entries]
+            excluded = {"MANIFEST.txt", "SHA256SUMS.txt"}
+            expected_entries = [
+              Path(path).relative_to(root).as_posix()
+              for path in tracked_entries
+              if Path(path).relative_to(root).as_posix() not in excluded
+            ]
 
           missing = sorted(set(expected_entries) - set(manifest_entries))
           extra = sorted(set(manifest_entries) - set(expected_entries))
